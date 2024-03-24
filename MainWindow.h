@@ -13,7 +13,7 @@
 class MainWindow : public QMainWindow {
 public:
     MainWindow(QWidget *parent = nullptr);
-    void setBoard(int board[64]);
+    void setBoard(int board[][8]);
     void setSelectedSquare(int row, int col);
 
 protected:

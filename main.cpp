@@ -8,46 +8,46 @@
 MainWindow* mainWindow;
 Board* board;
 
-int startingBoard[64];
+int startingBoard[8][8];
 
 bool playing = false;
 //1: white, 2: black
 int turn = 1;
 
 void initializeBoard() {
-    startingBoard[0] = BLACK | ROOK;
-    startingBoard[1] = BLACK | KNIGHT;
-    startingBoard[2] = BLACK | BISHOP;
-    startingBoard[3] = BLACK | QUEEN;
-    startingBoard[4] = BLACK | KING;
-    startingBoard[5] = BLACK | BISHOP;
-    startingBoard[6] = BLACK | KNIGHT;
-    startingBoard[7] = BLACK | ROOK;
-    startingBoard[8] = BLACK | PAWN;
-    startingBoard[9] = BLACK | PAWN;
-    startingBoard[10] = BLACK | PAWN;
-    startingBoard[11] = BLACK | PAWN;
-    startingBoard[12] = BLACK | PAWN;
-    startingBoard[13] = BLACK | PAWN;
-    startingBoard[14] = BLACK | PAWN;
-    startingBoard[15] = BLACK | PAWN;
+    startingBoard[0][0] = BLACK | ROOK;
+    startingBoard[0][1] = BLACK | KNIGHT;
+    startingBoard[0][2] = BLACK | BISHOP;
+    startingBoard[0][3] = BLACK | QUEEN;
+    startingBoard[0][4] = BLACK | KING;
+    startingBoard[0][5] = BLACK | BISHOP;
+    startingBoard[0][6] = BLACK | KNIGHT;
+    startingBoard[0][7] = BLACK | ROOK;
+    startingBoard[1][0] = BLACK | PAWN;
+    startingBoard[1][1] = BLACK | PAWN;
+    startingBoard[1][2] = BLACK | PAWN;
+    startingBoard[1][3] = BLACK | PAWN;
+    startingBoard[1][4] = BLACK | PAWN;
+    startingBoard[1][5] = BLACK | PAWN;
+    startingBoard[1][6] = BLACK | PAWN;
+    startingBoard[1][7] = BLACK | PAWN;
 
-    startingBoard[56] = WHITE | ROOK;
-    startingBoard[57] = WHITE | KNIGHT;
-    startingBoard[58] = WHITE | BISHOP;
-    startingBoard[59] = WHITE | QUEEN;
-    startingBoard[60] = WHITE | KING;
-    startingBoard[61] = WHITE | BISHOP;
-    startingBoard[62] = WHITE | KNIGHT;
-    startingBoard[63] = WHITE | ROOK;
-    startingBoard[48] = WHITE | PAWN;
-    startingBoard[49] = WHITE | PAWN;
-    startingBoard[50] = WHITE | PAWN;
-    startingBoard[51] = WHITE | PAWN;
-    startingBoard[52] = WHITE | PAWN;
-    startingBoard[53] = WHITE | PAWN;
-    startingBoard[54] = WHITE | PAWN;
-    startingBoard[55] = WHITE | PAWN;
+    startingBoard[7][0] = WHITE | ROOK;
+    startingBoard[7][1] = WHITE | KNIGHT;
+    startingBoard[7][2] = WHITE | BISHOP;
+    startingBoard[7][3] = WHITE | QUEEN;
+    startingBoard[7][4] = WHITE | KING;
+    startingBoard[7][5] = WHITE | BISHOP;
+    startingBoard[7][6] = WHITE | KNIGHT;
+    startingBoard[7][7] = WHITE | ROOK;
+    startingBoard[6][0] = WHITE | PAWN;
+    startingBoard[6][1] = WHITE | PAWN;
+    startingBoard[6][2] = WHITE | PAWN;
+    startingBoard[6][3] = WHITE | PAWN;
+    startingBoard[6][4] = WHITE | PAWN;
+    startingBoard[6][5] = WHITE | PAWN;
+    startingBoard[6][6] = WHITE | PAWN;
+    startingBoard[6][7] = WHITE | PAWN;
 }
 
 int main(int argc, char* argv[]) {
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 
 void main::mouseClick(int row, int col) {
     if(playing) {
-        if(board->click(row * 8 + col)) {
+        if(board->click(row, col)) {
             endTurn();
         } else {
             mainWindow->setSelectedSquare(row, col);

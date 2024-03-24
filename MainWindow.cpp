@@ -15,7 +15,7 @@ const int pieceLength = sqLength * 7 / 8;
 const int pieceCenteringOffset = (sqLength - pieceLength) / 2;
 const int horizStart = (WIDTH - (sqLength * 8)) / 2;
 
-int gameBoard[64];
+int gameBoard[8][8];
 
 pair<int, int> selectedSquare(-1, -1);
 
@@ -40,27 +40,27 @@ void MainWindow::paintEvent(QPaintEvent *event) {
     painter.drawRect(0, 0, WIDTH, HEIGHT);
 
     //Draw the startingBoard
-    for(int i = 0; i < 64; i++) {
-        int row = i / 8, col = i % 8;
+    for(int row = 0; row < 8; row++) {
+        for(int col = 0; col < 8; col++) {
+            if(selectedSquare.first == row && selectedSquare.second == col) {
+                painter.setBrush(red);
+                painter.setPen(red);
+            } else if((row + col) % 2 == 0) {
+                painter.setBrush(white);
+                painter.setPen(white);
+            } else {
+                painter.setBrush(black);
+                painter.setPen(black);
+            }
 
-        if(selectedSquare.first == row && selectedSquare.second == col) {
-            painter.setBrush(red);
-            painter.setPen(red);
-        } else if((row + col) % 2 == 0) {
-            painter.setBrush(white);
-            painter.setPen(white);
-        } else {
-            painter.setBrush(black);
-            painter.setPen(black);
-        }
+            painter.drawRect(horizStart + sqLength * col, vertOffset + sqLength * row, sqLength, sqLength);
 
-        painter.drawRect(horizStart + sqLength * col, vertOffset + sqLength * row, sqLength, sqLength);
-
-        if((gameBoard[i] & PIECE_TYPE) != NONE) {
-            //Piece exists on this square, draw it
-            painter.drawPixmap(horizStart + sqLength * col + pieceCenteringOffset,
-                               vertOffset + sqLength * row + pieceCenteringOffset, pieceImages[gameBoard[i] - 9].
-                            scaled(pieceLength, pieceLength, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            if((gameBoard[row][col] & PIECE_TYPE) != NONE) {
+                //Piece exists on this square, draw it
+                painter.drawPixmap(horizStart + sqLength * col + pieceCenteringOffset,
+                                   vertOffset + sqLength * row + pieceCenteringOffset, pieceImages[gameBoard[row][col] - 9].
+                                scaled(pieceLength, pieceLength, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            }
         }
     }
 
@@ -68,10 +68,10 @@ void MainWindow::paintEvent(QPaintEvent *event) {
     painter.setPen(red);
     std::vector<Move> moves = main::getMoves();
     for(auto & move : moves) {
-        int row = move.endSquare / 8;
-        int col = move.endSquare % 8;
+        int row = move.endRow;
+        int col = move.endCol;
 
-        if(gameBoard[move.endSquare] != 0) {
+        if(gameBoard[row][col] != 0) {
             painter.setBrush(Qt::NoBrush);
             painter.drawEllipse(QPoint(horizStart + sqLength * col + sqLength / 2, vertOffset + sqLength * row + sqLength / 2), sqLength / 2, sqLength / 2);
         }
@@ -82,9 +82,11 @@ void MainWindow::paintEvent(QPaintEvent *event) {
     }
 }
 
-void MainWindow::setBoard(int *board) {
-    for(int i = 0; i < 64; i++) {
-        gameBoard[i] = board[i];
+void MainWindow::setBoard(int board[][8]) {
+    for(int i = 0; i < 8; i++) {
+        for(int j = 0; j < 8; j++) {
+            gameBoard[i][j] = board[i][j];
+        }
     }
 }
 

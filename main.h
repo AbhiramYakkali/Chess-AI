@@ -16,7 +16,7 @@ const int NONE = 0, KING = 1, PAWN = 2, KNIGHT = 3, BISHOP = 4, ROOK = 5, QUEEN 
 const int PIECE_COLOR = 24, PIECE_TYPE = 7;
 
 struct Move {
-    int startSquare, endSquare;
+    int startRow, startCol, endRow, endCol;
 };
 
 class main {
