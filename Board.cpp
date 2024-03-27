@@ -81,12 +81,12 @@ void Board::calculatePawnMoves(int row, int col) {
     //Check forward moves
     int nextRow = row + direction;
     if(board[nextRow][col] == NONE) {
-        allMoves.emplace_back(row, col, nextRow, col);
+        checkMove(Move(row, col, nextRow, col));
 
         //Check for double Move
         nextRow += direction;
         if((row == 1 || row == 6) && board[nextRow][col] == NONE) {
-            allMoves.emplace_back(row, col, nextRow, col);
+            checkMove(Move(row, col, nextRow, col));
         }
     }
 
@@ -94,25 +94,25 @@ void Board::calculatePawnMoves(int row, int col) {
     nextRow = row + direction;
     int nextCol = col - 1;
     if(nextCol >= 0 && board[nextRow][nextCol] != NONE && (board[nextRow][nextCol] & PIECE_COLOR) != (board[row][col] & PIECE_COLOR)) {
-        allMoves.emplace_back(row, col, nextRow, nextCol);
+        checkMove(Move(row, col, nextRow, nextCol));
     }
 
     nextCol += 2;
     if(nextCol < 8 && board[nextRow][nextCol] != NONE && (board[nextRow][nextCol] & PIECE_COLOR) != (board[row][col] & PIECE_COLOR)) {
-        allMoves.emplace_back(row, col, nextRow, nextCol);
+        checkMove(Move(row, col, nextRow, nextCol));
     }
 
     //TODO: Check en passant
 }
 void Board::calculateKnightMoves(int row, int col) {
     for(pair<int, int> direction : knightDirections) {
-        int newRow = row + direction.first;
-        int newCol = col + direction.second;
+        int nextRow = row + direction.first;
+        int nextCol = col + direction.second;
 
-        if(newRow < 0 || newRow > 7 || newCol < 0 || newCol > 7) continue;
+        if(nextRow < 0 || nextRow > 7 || nextCol < 0 || nextCol > 7) continue;
 
-        if(board[newRow][newCol] == NONE || (board[newRow][newCol] & PIECE_COLOR) / 8 != turn) {
-            allMoves.emplace_back(row, col, newRow, newCol);
+        if(board[nextRow][nextCol] == NONE || (board[nextRow][nextCol] & PIECE_COLOR) / 8 != turn) {
+            checkMove(Move(row, col, nextRow, nextCol));
         }
     }
 }
@@ -125,7 +125,7 @@ void Board::calculateKingMoves(int row, int col) {
 
         if(nextRow < 0 || nextRow > 7 || nextCol < 0 || nextCol > 7) continue;
 
-        if((board[nextRow][nextCol] & PIECE_COLOR) != pieceColor) allMoves.emplace_back(row, col, nextRow, nextCol);
+        if((board[nextRow][nextCol] & PIECE_COLOR) != pieceColor) checkMove(Move(row, col, nextRow, nextCol));
     }
 }
 void Board::calculateSlidingMoves(int row, int col) {
@@ -150,12 +150,30 @@ void Board::calculateSlidingMoves(int row, int col) {
             //Square being checked is occupied by a friendly piece
             if(nextSquareColor == pieceColor) break;
 
-            allMoves.emplace_back(row, col, nextRow, nextCol);
+            checkMove(Move(row, col, nextRow, nextCol));
 
             //Square being checked is occupied by an enemy piece, current piece can go no farther
             if(nextSquareColor != NONE) break;
         }
     }
+}
+
+void Board::checkMove(Move move) {
+    int tempBoard[8][8];
+    int kingPos = -1;
+    copy(&board[0][0], &board[7][8], &tempBoard[0][0]);
+
+    tempBoard[move.endRow][move.endCol] = tempBoard[move.startRow][move.startCol];
+    tempBoard[move.startRow][move.startCol] = 0;
+
+    if((tempBoard[move.endRow][move.endCol] & PIECE_TYPE) == KING) {
+        kingPos = move.startRow * 10 + move.startCol;
+        kingPositions[turn - 1] = move.endRow * 10 + move.endCol;
+    }
+
+    if(!isKingInCheck(tempBoard)) allMoves.push_back(move);
+
+    if(kingPos != -1) kingPositions[turn - 1] = kingPos;
 }
 
 bool Board::isEnemyPiece(int row, int col, int color) {
@@ -166,7 +184,7 @@ bool Board::isEnemyPiece(int row, int col) {
 }
 
 //Checks if the king is currently in check
-bool Board::isKingInCheck() {
+bool Board::isKingInCheck(int (*boardToCheck)[8]) {
     int kingPosition = kingPositions[turn - 1];
     int kingRow = kingPosition / 10;
     int kingCol = kingPosition % 10;
@@ -178,7 +196,7 @@ bool Board::isKingInCheck() {
 
         if(row < 0 || row > 7 || col < 0 || col > 7) continue;
 
-        if(isEnemyPiece(row, col) && (board[row][col] & PIECE_TYPE) == KNIGHT) {
+        if(isEnemyPiece(row, col) && (boardToCheck[row][col] & PIECE_TYPE) == KNIGHT) {
             return true;
         }
     }
@@ -189,8 +207,8 @@ bool Board::isKingInCheck() {
         int row = kingRow + direction.first;
         int col = kingCol + direction.second;
 
-        while(!(row < 0 || row > 7 || col < 0 || col > 7)) {
-            int type = board[row][col] & PIECE_TYPE;
+        while(row >= 0 && row < 8 && col >= 0 && col < 8) {
+            int type = boardToCheck[row][col] & PIECE_TYPE;
 
             if(type != NONE) {
                 if(isEnemyPiece(row, col)) {
@@ -213,7 +231,12 @@ bool Board::isKingInCheck() {
         }
     }
 
+    //TODO: Check for enemy pawns
+
     return false;
+}
+bool Board::isKingInCheck() {
+    return isKingInCheck(board);
 }
 
 bool Board::click(int row, int col) {
@@ -221,6 +244,12 @@ bool Board::click(int row, int col) {
         if(move.endRow == row && move.endCol == col) {
             board[move.endRow][move.endCol] = board[move.startRow][move.startCol];
             board[move.startRow][move.startCol] = 0;
+
+            //Update king position if king moved
+            if((board[move.endRow][move.endCol] & PIECE_TYPE) == KING) {
+                kingPositions[turn - 1] = move.endRow * 10 + move.endCol;
+            }
+
             return true;
         }
     }

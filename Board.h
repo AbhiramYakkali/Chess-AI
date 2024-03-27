@@ -35,12 +35,14 @@ private:
     void findMovesForSquare(int row, int col);
     void findAllMoves();
     void isolateMovesForSquare(int row, int col);
+    void checkMove(Move move);
 
     void calculatePawnMoves(int row, int col);
     void calculateKnightMoves(int row, int col);
     void calculateSlidingMoves(int row, int col);
     void calculateKingMoves(int row, int col);
 
+    bool isKingInCheck(int boardToCheck[][8]);
     bool isKingInCheck();
 
     bool isEnemyPiece(int row, int col, int color);

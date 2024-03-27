@@ -109,11 +109,7 @@ void MainWindow::paintEvent(QPaintEvent *event) {
 }
 
 void MainWindow::setBoard(int board[][8]) {
-    for(int i = 0; i < 8; i++) {
-        for(int j = 0; j < 8; j++) {
-            gameBoard[i][j] = board[i][j];
-        }
-    }
+    copy(&board[0][0], &board[7][8], &gameBoard[0][0]);
 }
 
 //Pixmaps are loaded in order: king, pawn, knight, bishop, rook, queen
