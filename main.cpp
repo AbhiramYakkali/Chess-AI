@@ -57,6 +57,7 @@ int main(int argc, char* argv[]) {
 
     mainWindow = new MainWindow();
     mainWindow->setBoard(startingBoard);
+    mainWindow->setGameState(0);
     mainWindow->show();
 
     board = new Board(startingBoard);
@@ -82,7 +83,8 @@ void main::endTurn() {
     mainWindow->setBoard(board->getBoard());
     mainWindow->setSelectedSquare(-1, -1);
 
-    board->endTurn();
+    int state = board->endTurn();
+    mainWindow->setGameState(state);
 }
 
 std::vector<Move> main::getMoves() {

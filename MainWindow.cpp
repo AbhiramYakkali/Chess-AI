@@ -80,6 +80,32 @@ void MainWindow::paintEvent(QPaintEvent *event) {
             painter.drawEllipse(QPoint(horizStart + sqLength * col + sqLength / 2, vertOffset + sqLength * row + sqLength / 2), sqLength / 5, sqLength / 5);
         }
     }
+
+    //Print game state message (if needed)
+    QString message;
+    switch(gameState) {
+        case 1:
+            message = "white wins";
+            break;
+        case 2:
+            message = "black wins";
+            break;
+        case 3:
+            message = "stalemate";
+            break;
+        case 4:
+            message = "check";
+            break;
+        default:
+            message = "";
+            break;
+    }
+
+    QFont font = painter.font();
+    font.setPointSize(25);
+    painter.setFont(font);
+    painter.setPen(white);
+    painter.drawText(horizStart / 3, HEIGHT / 2, message);
 }
 
 void MainWindow::setBoard(int board[][8]) {
@@ -133,4 +159,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
 
 void MainWindow::setSelectedSquare(int row, int col) {
     selectedSquare = make_pair(row, col);
+}
+void MainWindow::setGameState(int state) {
+    gameState = state;
 }

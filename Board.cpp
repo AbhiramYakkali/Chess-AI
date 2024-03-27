@@ -14,8 +14,32 @@ Board::Board(const int b[8][8]) {
     for(int i = 0; i < 8; i++) {
         for(int j = 0; j < 8; j++) {
             board[i][j] = b[i][j];
+
+            if((board[i][j] & PIECE_TYPE) == KING) {
+                kingPositions[(board[i][j] & PIECE_COLOR) / 8 - 1] = i * 10 + j;
+            }
         }
     }
+
+    //Populate possible knight moves
+    knightDirections[0] = make_pair(-2, -1);
+    knightDirections[1] = make_pair(-2, 1);
+    knightDirections[2] = make_pair(-1, -2);
+    knightDirections[3] = make_pair(-1, 2);
+    knightDirections[4] = make_pair(2, -1);
+    knightDirections[5] = make_pair(2, 1);
+    knightDirections[6] = make_pair(1, -2);
+    knightDirections[7] = make_pair(1, 2);
+
+    //Populate possible sliding moves
+    slidingDirections[0] = make_pair(1, 0);
+    slidingDirections[1] = make_pair(-1, 0);
+    slidingDirections[2] = make_pair(0, 1);
+    slidingDirections[3] = make_pair(0, -1);
+    slidingDirections[4] = make_pair(1, 1);
+    slidingDirections[5] = make_pair(-1, 1);
+    slidingDirections[6] = make_pair(1, -1);
+    slidingDirections[7] = make_pair(-1, -1);
 
     findAllMoves();
 }
@@ -81,17 +105,7 @@ void Board::calculatePawnMoves(int row, int col) {
     //TODO: Check en passant
 }
 void Board::calculateKnightMoves(int row, int col) {
-    pair<int, int> directions[8];
-    directions[0] = make_pair(-2, -1);
-    directions[1] = make_pair(-2, 1);
-    directions[2] = make_pair(-1, -2);
-    directions[3] = make_pair(-1, 2);
-    directions[4] = make_pair(2, -1);
-    directions[5] = make_pair(2, 1);
-    directions[6] = make_pair(1, -2);
-    directions[7] = make_pair(1, 2);
-
-    for(pair<int, int> direction : directions) {
+    for(pair<int, int> direction : knightDirections) {
         int newRow = row + direction.first;
         int newCol = col + direction.second;
 
@@ -103,19 +117,9 @@ void Board::calculateKnightMoves(int row, int col) {
     }
 }
 void Board::calculateKingMoves(int row, int col) {
-    pair<int, int> directions[8];
-    directions[0] = make_pair(1, 0);
-    directions[1] = make_pair(-1, 0);
-    directions[2] = make_pair(0, 1);
-    directions[3] = make_pair(0, -1);
-    directions[4] = make_pair(1, 1);
-    directions[5] = make_pair(-1, 1);
-    directions[6] = make_pair(1, -1);
-    directions[7] = make_pair(-1, -1);
-
     int pieceColor = board[row][col] & PIECE_COLOR;
 
-    for(auto direction : directions) {
+    for(auto direction : slidingDirections) {
         int nextRow = row + direction.first;
         int nextCol = col + direction.second;
 
@@ -125,23 +129,13 @@ void Board::calculateKingMoves(int row, int col) {
     }
 }
 void Board::calculateSlidingMoves(int row, int col) {
-    pair<int, int> directions[8];
-    directions[0] = make_pair(1, 0);
-    directions[1] = make_pair(-1, 0);
-    directions[2] = make_pair(0, 1);
-    directions[3] = make_pair(0, -1);
-    directions[4] = make_pair(1, 1);
-    directions[5] = make_pair(-1, 1);
-    directions[6] = make_pair(1, -1);
-    directions[7] = make_pair(-1, -1);
-
     int piece = board[row][col];
     int pieceColor = piece & PIECE_COLOR;
     int startIndex = ((piece & PIECE_TYPE) == BISHOP) ? 4 : 0;
     int endIndex = ((piece & PIECE_TYPE) == ROOK) ? 4 : 8;
 
     for(int i = startIndex; i < endIndex; i++) {
-        pair<int, int> direction = directions[i];
+        pair<int, int> direction = slidingDirections[i];
         int nextRow = row;
         int nextCol = col;
 
@@ -164,6 +158,64 @@ void Board::calculateSlidingMoves(int row, int col) {
     }
 }
 
+bool Board::isEnemyPiece(int row, int col, int color) {
+    return board[row][col] != 0 && (board[row][col] & PIECE_COLOR) != color;
+}
+bool Board::isEnemyPiece(int row, int col) {
+    return isEnemyPiece(row, col, turn * 8);
+}
+
+//Checks if the king is currently in check
+bool Board::isKingInCheck() {
+    int kingPosition = kingPositions[turn - 1];
+    int kingRow = kingPosition / 10;
+    int kingCol = kingPosition % 10;
+
+    //Check for enemy knights
+    for(auto direction : knightDirections) {
+        int row = kingRow + direction.first;
+        int col = kingCol + direction.second;
+
+        if(row < 0 || row > 7 || col < 0 || col > 7) continue;
+
+        if(isEnemyPiece(row, col) && (board[row][col] & PIECE_TYPE) == KNIGHT) {
+            return true;
+        }
+    }
+
+
+    for(int i = 0; i < 8; i++) {
+        pair<int, int> direction = slidingDirections[i];
+        int row = kingRow + direction.first;
+        int col = kingCol + direction.second;
+
+        while(!(row < 0 || row > 7 || col < 0 || col > 7)) {
+            int type = board[row][col] & PIECE_TYPE;
+
+            if(type != NONE) {
+                if(isEnemyPiece(row, col)) {
+                    //Check for straight-line sliding pieces
+                    if(i < 4 && (type == ROOK || type == QUEEN)) {
+                        return true;
+                    }
+
+                    //Check for diagonal sliding pieces
+                    if(i >= 4 && (type == BISHOP || type == QUEEN)) {
+                        return true;
+                    }
+                }
+
+                break;
+            }
+
+            row += direction.first;
+            col += direction.second;
+        }
+    }
+
+    return false;
+}
+
 bool Board::click(int row, int col) {
     for(auto & move : moves) {
         if(move.endRow == row && move.endCol == col) {
@@ -177,12 +229,20 @@ bool Board::click(int row, int col) {
     return false;
 }
 
-void Board::endTurn() {
+//Returns current board state
+//0: normal, 1: white victory, 2: black victory, 3: stalemate, 4: current player is in check
+int Board::endTurn() {
+    int state = 0;
+
     moves.clear();
     allMoves.clear();
     turn = (turn == 1) ? 2 : 1;
 
+    if(isKingInCheck()) state = 4;
+
     findAllMoves();
+
+    return state;
 }
 
 void Board::isolateMovesForSquare(int row, int col) {

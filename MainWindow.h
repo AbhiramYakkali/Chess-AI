@@ -15,12 +15,15 @@ public:
     MainWindow(QWidget *parent = nullptr);
     void setBoard(int board[][8]);
     void setSelectedSquare(int row, int col);
+    void setGameState(int state);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
 
 private:
+    int gameState;
+
     void loadPixmaps();
 
     QVector<QPixmap> pieceImages;

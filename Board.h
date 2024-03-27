@@ -20,11 +20,16 @@ public:
 
     bool click(int row, int col);
     int (*getBoard())[8];
-    void endTurn();
+    int endTurn();
 
 private:
     int board[8][8];
     int turn;
+    //0: white king, 1: black king
+    //Find row using / 10, column using % 10
+    int kingPositions[2];
+    std::pair<int, int> knightDirections[8];
+    std::pair<int, int> slidingDirections[8];
     std::vector<Move> allMoves, moves;
 
     void findMovesForSquare(int row, int col);
@@ -35,6 +40,11 @@ private:
     void calculateKnightMoves(int row, int col);
     void calculateSlidingMoves(int row, int col);
     void calculateKingMoves(int row, int col);
+
+    bool isKingInCheck();
+
+    bool isEnemyPiece(int row, int col, int color);
+    bool isEnemyPiece(int row, int col);
 };
 
 
