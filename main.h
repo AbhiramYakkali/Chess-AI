@@ -14,9 +14,27 @@
 const int WHITE = 8, BLACK = 16;
 const int NONE = 0, KING = 1, PAWN = 2, KNIGHT = 3, BISHOP = 4, ROOK = 5, QUEEN = 6;
 const int PIECE_COLOR = 24, PIECE_TYPE = 7;
+//Special moves (moves that require more than moving a single piece)
+const int NORMAL_MOVE = 0, KINGS_CASTLE = 1, QUEENS_CASTLE = 2, EN_PASSANT = 3;
 
 struct Move {
     int startRow, startCol, endRow, endCol;
+    int specialMove;
+
+    Move(int sR, int sC, int eR, int eC) {
+        startRow = sR;
+        startCol = sC;
+        endRow = eR;
+        endCol = eC;
+        specialMove = NORMAL_MOVE;
+    }
+    Move(int sR, int sC, int eR, int eC, int special) {
+        startRow = sR;
+        startCol = sC;
+        endRow = eR;
+        endCol = eC;
+        specialMove = special;
+    }
 };
 
 class main {

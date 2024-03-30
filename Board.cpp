@@ -8,8 +8,7 @@
 using namespace std;
 
 Board::Board(const int b[8][8]) {
-    //1: white, 2: black
-    turn = 1;
+    turn = TURN_WHITE;
 
     for(int i = 0; i < 8; i++) {
         for(int j = 0; j < 8; j++) {
@@ -40,6 +39,9 @@ Board::Board(const int b[8][8]) {
     slidingDirections[5] = make_pair(-1, 1);
     slidingDirections[6] = make_pair(1, -1);
     slidingDirections[7] = make_pair(-1, -1);
+
+    canCastle[0] = make_pair(true, true);
+    canCastle[1] = make_pair(true, true);
 
     findAllMoves();
 }
@@ -127,6 +129,16 @@ void Board::calculateKingMoves(int row, int col) {
 
         if((board[nextRow][nextCol] & PIECE_COLOR) != pieceColor) checkMove(Move(row, col, nextRow, nextCol));
     }
+
+    //Check if king can castle
+    //Check queen's side castling
+    if(canCastle[turn - 1].first) {
+        if(board[row][1] + board[row][2] + board[row][3] == 0) allMoves.emplace_back(row, col, row, 2, QUEENS_CASTLE);
+    }
+    //Check king's side castling
+    if(canCastle[turn - 1].second) {
+        if(board[row][5] + board[row][6] == 0) allMoves.emplace_back(row, col, row, 6, KINGS_CASTLE);
+    }
 }
 void Board::calculateSlidingMoves(int row, int col) {
     int piece = board[row][col];
@@ -176,11 +188,14 @@ void Board::checkMove(Move move) {
     if(kingPos != -1) kingPositions[turn - 1] = kingPos;
 }
 
-bool Board::isEnemyPiece(int row, int col, int color) {
-    return board[row][col] != 0 && (board[row][col] & PIECE_COLOR) != color;
+bool Board::isEnemyPiece2(int piece, int color) {
+    return piece != 0 && (piece & PIECE_COLOR) != color;
 }
 bool Board::isEnemyPiece(int row, int col) {
-    return isEnemyPiece(row, col, turn * 8);
+    return isEnemyPiece2(board[row][col], turn * 8);
+}
+bool Board::isEnemyPiece(int piece) {
+    return isEnemyPiece2(piece, turn * 8);
 }
 
 //Checks if the king is currently in check
@@ -196,7 +211,7 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
 
         if(row < 0 || row > 7 || col < 0 || col > 7) continue;
 
-        if(isEnemyPiece(row, col) && (boardToCheck[row][col] & PIECE_TYPE) == KNIGHT) {
+        if(isEnemyPiece(boardToCheck[row][col]) && (boardToCheck[row][col] & PIECE_TYPE) == KNIGHT) {
             return true;
         }
     }
@@ -210,8 +225,8 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
         while(row >= 0 && row < 8 && col >= 0 && col < 8) {
             int type = boardToCheck[row][col] & PIECE_TYPE;
 
-            if(type != NONE) {
-                if(isEnemyPiece(row, col)) {
+            if(boardToCheck[row][col] != NONE) {
+                if(isEnemyPiece(boardToCheck[row][col])) {
                     //Check for straight-line sliding pieces
                     if(i < 4 && (type == ROOK || type == QUEEN)) {
                         return true;
@@ -242,12 +257,24 @@ bool Board::isKingInCheck() {
 bool Board::click(int row, int col) {
     for(auto & move : moves) {
         if(move.endRow == row && move.endCol == col) {
-            board[move.endRow][move.endCol] = board[move.startRow][move.startCol];
-            board[move.startRow][move.startCol] = 0;
+            if(move.specialMove == NORMAL_MOVE) {
+                board[move.endRow][move.endCol] = board[move.startRow][move.startCol];
+                board[move.startRow][move.startCol] = 0;
 
-            //Update king position if king moved
-            if((board[move.endRow][move.endCol] & PIECE_TYPE) == KING) {
-                kingPositions[turn - 1] = move.endRow * 10 + move.endCol;
+                //Update king position if king moved
+                if((board[move.endRow][move.endCol] & PIECE_TYPE) == KING) {
+                    kingPositions[turn - 1] = move.endRow * 10 + move.endCol;
+                }
+            } else if(move.specialMove == KINGS_CASTLE) {
+                board[row][6] = board[row][4];
+                board[row][5] = board[row][7];
+                board[row][4] = 0;
+                board[row][7] = 0;
+            } else if(move.specialMove == QUEENS_CASTLE) {
+                board[row][2] = board[row][4];
+                board[row][3] = board[row][0];
+                board[row][4] = 0;
+                board[row][0] = 0;
             }
 
             return true;

@@ -9,6 +9,8 @@
 #include <vector>
 #include "main.h"
 
+const int TURN_WHITE = 1, TURN_BLACK = 2;
+
 class Board {
 public:
     Board(const int board[8][8]);
@@ -32,6 +34,9 @@ private:
     std::pair<int, int> slidingDirections[8];
     std::vector<Move> allMoves, moves;
 
+    //First: Queen's side, second: king's side
+    std::pair<int, int> canCastle[2];
+
     void findMovesForSquare(int row, int col);
     void findAllMoves();
     void isolateMovesForSquare(int row, int col);
@@ -45,8 +50,9 @@ private:
     bool isKingInCheck(int boardToCheck[][8]);
     bool isKingInCheck();
 
-    bool isEnemyPiece(int row, int col, int color);
+    bool isEnemyPiece2(int piece, int color);
     bool isEnemyPiece(int row, int col);
+    bool isEnemyPiece(int piece);
 };
 
 
