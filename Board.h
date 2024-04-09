@@ -30,6 +30,9 @@ private:
     //0: white king, 1: black king
     //Find row using / 10, column using % 10
     int kingPositions[2]{};
+    //Keeps track of the column of a pawn that has moved two squares in the previous move (set to -2 if N/A)
+    //Used to check if en passant is possible
+    int enPassantCol;
     std::pair<int, int> knightDirections[8];
     std::pair<int, int> slidingDirections[8];
     std::vector<Move> allMoves, moves;

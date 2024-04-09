@@ -9,6 +9,7 @@ using namespace std;
 
 Board::Board(const int b[8][8]) {
     turn = TURN_WHITE;
+    enPassantCol = -2;
 
     for(int i = 0; i < 8; i++) {
         for(int j = 0; j < 8; j++) {
@@ -104,7 +105,13 @@ void Board::calculatePawnMoves(int row, int col) {
         checkMove(Move(row, col, nextRow, nextCol));
     }
 
-    //TODO: Check en passant
+    //Check en passant
+    if(abs(enPassantCol - col) == 1) {
+        if((turn == TURN_WHITE && row == 3) || (turn == TURN_BLACK && row == 4)) {
+            //En passant is possible
+            checkMove(Move(row, col, row + direction, enPassantCol, EN_PASSANT));
+        }
+    }
 }
 void Board::calculateKnightMoves(int row, int col) {
     for(pair<int, int> direction : knightDirections) {
@@ -277,6 +284,8 @@ bool Board::click(int row, int col) {
 }
 
 void Board::makeMove(Move move) {
+    enPassantCol = -2;
+
     int start = move.startRow * 10 + move.startCol;
     int end = move.endRow * 10 + move.endCol;
 
@@ -290,6 +299,9 @@ void Board::makeMove(Move move) {
 
             //Castling is no longer possible if king moved
             canCastle[turn - 1] = make_pair(false, false);
+        } else if((board[move.endRow][move.endCol] & PIECE_TYPE) == PAWN && abs(move.endRow - move.startRow) == 2) {
+            //Pawn moved forward two squares, keep track to check for en passant
+            enPassantCol = move.endCol;
         }
 
         //Check if rooks moved or were captured
@@ -316,6 +328,11 @@ void Board::makeMove(Move move) {
         board[row][3] = board[row][0];
         board[row][4] = 0;
         board[row][0] = 0;
+    } else if(move.specialMove == EN_PASSANT) {
+        board[move.endRow][move.endCol] = board[move.startRow][move.startCol];
+        board[move.startRow][move.startCol] = 0;
+        //Capture pawn with en passant
+        board[move.startRow][move.endCol] = 0;
     }
 }
 
