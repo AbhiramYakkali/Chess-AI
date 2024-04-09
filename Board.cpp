@@ -132,11 +132,11 @@ void Board::calculateKingMoves(int row, int col) {
 
     //Check if king can castle
     //Check queen's side castling
-    if(canCastle[turn - 1].first) {
+    if(canCastle[turn - 1].first && (board[row][0] & PIECE_TYPE) == ROOK && !isEnemyPiece(row, 0)) {
         if(board[row][1] + board[row][2] + board[row][3] == 0) allMoves.emplace_back(row, col, row, 2, QUEENS_CASTLE);
     }
     //Check king's side castling
-    if(canCastle[turn - 1].second) {
+    if(canCastle[turn - 1].second && (board[row][7] & PIECE_TYPE) == ROOK && !isEnemyPiece(row, 7)) {
         if(board[row][5] + board[row][6] == 0) allMoves.emplace_back(row, col, row, 6, KINGS_CASTLE);
     }
 }
@@ -216,11 +216,14 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
         }
     }
 
-
+    //Check for enemy sliding pieces
     for(int i = 0; i < 8; i++) {
         pair<int, int> direction = slidingDirections[i];
         int row = kingRow + direction.first;
         int col = kingCol + direction.second;
+
+        //Check for enemy king (used to prevent king from moving next to the enemy king)
+        if((boardToCheck[row][col] & PIECE_TYPE) == KING) return true;
 
         while(row >= 0 && row < 8 && col >= 0 && col < 8) {
             int type = boardToCheck[row][col] & PIECE_TYPE;
@@ -246,7 +249,13 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
         }
     }
 
-    //TODO: Check for enemy pawns
+    //Check for enemy pawns
+    int direction = (turn == TURN_WHITE) ? -1 : 1;
+    int newRow = kingRow + direction;
+    if(newRow >= 0 && newRow < 8) {
+        if(kingCol - 1 >= 0 && isEnemyPiece(boardToCheck[newRow][kingCol - 1]) && (boardToCheck[newRow][kingCol - 1] & PIECE_TYPE) == PAWN) return true;
+        if(kingCol + 1 < 8 && isEnemyPiece(boardToCheck[newRow][kingCol + 1]) && (boardToCheck[newRow][kingCol + 1] & PIECE_TYPE) == PAWN) return true;
+    }
 
     return false;
 }
@@ -257,25 +266,7 @@ bool Board::isKingInCheck() {
 bool Board::click(int row, int col) {
     for(auto & move : moves) {
         if(move.endRow == row && move.endCol == col) {
-            if(move.specialMove == NORMAL_MOVE) {
-                board[move.endRow][move.endCol] = board[move.startRow][move.startCol];
-                board[move.startRow][move.startCol] = 0;
-
-                //Update king position if king moved
-                if((board[move.endRow][move.endCol] & PIECE_TYPE) == KING) {
-                    kingPositions[turn - 1] = move.endRow * 10 + move.endCol;
-                }
-            } else if(move.specialMove == KINGS_CASTLE) {
-                board[row][6] = board[row][4];
-                board[row][5] = board[row][7];
-                board[row][4] = 0;
-                board[row][7] = 0;
-            } else if(move.specialMove == QUEENS_CASTLE) {
-                board[row][2] = board[row][4];
-                board[row][3] = board[row][0];
-                board[row][4] = 0;
-                board[row][0] = 0;
-            }
+            makeMove(move);
 
             return true;
         }
@@ -283,6 +274,49 @@ bool Board::click(int row, int col) {
 
     isolateMovesForSquare(row, col);
     return false;
+}
+
+void Board::makeMove(Move move) {
+    int start = move.startRow * 10 + move.startCol;
+    int end = move.endRow * 10 + move.endCol;
+
+    if(move.specialMove == NORMAL_MOVE) {
+        board[move.endRow][move.endCol] = board[move.startRow][move.startCol];
+        board[move.startRow][move.startCol] = 0;
+
+        //Update king position if king moved
+        if((board[move.endRow][move.endCol] & PIECE_TYPE) == KING) {
+            kingPositions[turn - 1] = end;
+
+            //Castling is no longer possible if king moved
+            canCastle[turn - 1] = make_pair(false, false);
+        }
+
+        //Check if rooks moved or were captured
+        if(turn == TURN_WHITE) {
+            //Queen's side rook moved
+            if(start == 70) canCastle[0].first = false;
+            //King's side rook moved
+            if(start == 77) canCastle[0].second = false;
+        } else if(turn == TURN_BLACK) {
+            //Queen's side rook moved
+            if(start == 0) canCastle[1].first = false;
+            //King's side rook moved
+            if(start == 7) canCastle[1].second = false;
+        }
+    } else if(move.specialMove == KINGS_CASTLE) {
+        int row = move.startRow;
+        board[row][6] = board[row][4];
+        board[row][5] = board[row][7];
+        board[row][4] = 0;
+        board[row][7] = 0;
+    } else if(move.specialMove == QUEENS_CASTLE) {
+        int row = move.startRow;
+        board[row][2] = board[row][4];
+        board[row][3] = board[row][0];
+        board[row][4] = 0;
+        board[row][0] = 0;
+    }
 }
 
 //Returns current board state

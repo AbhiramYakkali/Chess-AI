@@ -25,11 +25,11 @@ public:
     int endTurn();
 
 private:
-    int board[8][8];
+    int board[8][8]{};
     int turn;
     //0: white king, 1: black king
     //Find row using / 10, column using % 10
-    int kingPositions[2];
+    int kingPositions[2]{};
     std::pair<int, int> knightDirections[8];
     std::pair<int, int> slidingDirections[8];
     std::vector<Move> allMoves, moves;
@@ -50,9 +50,11 @@ private:
     bool isKingInCheck(int boardToCheck[][8]);
     bool isKingInCheck();
 
-    bool isEnemyPiece2(int piece, int color);
+    static bool isEnemyPiece2(int piece, int color);
     bool isEnemyPiece(int row, int col);
     bool isEnemyPiece(int piece);
+
+    void makeMove(Move move);
 };
 
 
