@@ -98,7 +98,7 @@ void main::endTurn() {
 
     //Check if it's the AI's turn to make a move
     if(aiColor == turn) {
-        board->makeMove(Bot::makeMove(*board));
+        board->makeMove(Bot::makeMove(*board, aiColor));
         endTurn();
     }
 }

@@ -13,7 +13,8 @@ const int TURN_WHITE = 1, TURN_BLACK = 2;
 
 class Board {
 public:
-    Board(const int board[8][8]);
+    explicit Board(const int board[8][8]);
+    Board(const int board[8][8], int turn);
 
     //Returns possible moves that the currently selected piece can make
     std::vector<Move> getMoves();
@@ -22,6 +23,7 @@ public:
 
     bool click(int row, int col);
     void makeMove(Move move);
+    Board makeBoardForMove(Move move);
     int (*getBoard())[8];
     int endTurn();
 

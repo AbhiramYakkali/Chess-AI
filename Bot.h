@@ -7,7 +7,7 @@
 
 class Bot {
 public:
-    static Move makeMove(Board board);
+    static Move makeMove(Board board, int color);
 };
 
 

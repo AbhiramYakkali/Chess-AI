@@ -7,8 +7,8 @@
 
 using namespace std;
 
-Board::Board(const int b[8][8]) {
-    turn = TURN_WHITE;
+Board::Board(const int b[8][8], int turn) {
+    this->turn = turn;
     enPassantCol = -2;
     inCheck = false;
 
@@ -47,6 +47,7 @@ Board::Board(const int b[8][8]) {
 
     findAllMoves();
 }
+Board::Board(const int b[8][8]) : Board(b, TURN_WHITE) {}
 
 void Board::findAllMoves() {
     for(int i = 0; i < 8; i++) {
@@ -336,6 +337,12 @@ void Board::makeMove(Move move) {
         //Capture pawn with en passant
         board[move.startRow][move.endCol] = 0;
     }
+}
+
+Board Board::makeBoardForMove(Move move) {
+    Board output = Board(board, turn);
+    output.makeMove(move);
+    return output;
 }
 
 //Returns current board state
