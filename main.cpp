@@ -4,6 +4,7 @@
 #include "MainWindow.h"
 #include "main.h"
 #include "Board.h"
+#include "Bot.h"
 
 MainWindow* mainWindow;
 Board* board;
@@ -13,6 +14,9 @@ int startingBoard[8][8];
 bool playing = false;
 //1: white, 2: black
 int turn = 1;
+//Set this to the color the AI should play as
+//-1 to play without AI
+int aiColor = 2;
 
 void initializeBoard() {
     startingBoard[0][0] = BLACK | ROOK;
@@ -85,6 +89,18 @@ void main::endTurn() {
 
     int state = board->endTurn();
     mainWindow->setGameState(state);
+
+    //If state is not 0 (normal) or 4 (check) then the game has ended
+    if(state != 0 && state != 4) {
+        playing = false;
+        return;
+    }
+
+    //Check if it's the AI's turn to make a move
+    if(aiColor == turn) {
+        board->makeMove(Bot::makeMove(*board));
+        endTurn();
+    }
 }
 
 std::vector<Move> main::getMoves() {

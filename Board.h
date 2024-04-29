@@ -21,6 +21,7 @@ public:
     std::vector<Move> getAllMoves();
 
     bool click(int row, int col);
+    void makeMove(Move move);
     int (*getBoard())[8];
     int endTurn();
 
@@ -33,6 +34,8 @@ private:
     //Keeps track of the column of a pawn that has moved two squares in the previous move (set to -2 if N/A)
     //Used to check if en passant is possible
     int enPassantCol;
+    //Checks if the player whose turn it is in check (used to prevent castling while in check)
+    bool inCheck;
     std::pair<int, int> knightDirections[8];
     std::pair<int, int> slidingDirections[8];
     std::vector<Move> allMoves, moves;
@@ -56,8 +59,6 @@ private:
     static bool isEnemyPiece2(int piece, int color);
     bool isEnemyPiece(int row, int col);
     bool isEnemyPiece(int piece);
-
-    void makeMove(Move move);
 };
 
 

@@ -10,6 +10,7 @@ using namespace std;
 Board::Board(const int b[8][8]) {
     turn = TURN_WHITE;
     enPassantCol = -2;
+    inCheck = false;
 
     for(int i = 0; i < 8; i++) {
         for(int j = 0; j < 8; j++) {
@@ -184,6 +185,7 @@ void Board::checkMove(Move move) {
 
     tempBoard[move.endRow][move.endCol] = tempBoard[move.startRow][move.startCol];
     tempBoard[move.startRow][move.startCol] = 0;
+    if(move.specialMove == EN_PASSANT) tempBoard[move.startRow][move.endCol] = 0;
 
     if((tempBoard[move.endRow][move.endCol] & PIECE_TYPE) == KING) {
         kingPos = move.startRow * 10 + move.startCol;
@@ -345,9 +347,18 @@ int Board::endTurn() {
     allMoves.clear();
     turn = (turn == 1) ? 2 : 1;
 
-    if(isKingInCheck()) state = 4;
+    inCheck = isKingInCheck();
+    if(inCheck) state = 4;
 
     findAllMoves();
+
+    if(allMoves.empty()) {
+        //No moves can be made, current outcome is stalemate or checkmate
+        //Current player is in check, therefore player is checkmated (lost)
+        if(inCheck) state = (turn == 1) ? 2 : 1;
+        //Current player is not in check, therefore result is stalemate (draw)
+        else state = 3;
+    }
 
     return state;
 }
