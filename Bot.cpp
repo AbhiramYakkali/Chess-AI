@@ -1,10 +1,18 @@
 #include "Bot.h"
+#include <chrono>
+#include <iostream>
 
 using namespace std;
 
+#define DEFAULT_DEPTH 3
+
+int positions = 0;
+
 //Evaluates a given board state and returns an integer
 //Positive numbers: white advantage; negative numbers: black advantage
-int evaluate(int board[][8]) {
+//Always returns a positive number (greater numbers are better for the AI)
+int evaluate(int board[][8], int color) {
+    positions++;
     int eval = 0;
 
     //Iterate through the board and add up the pieces on each side
@@ -39,27 +47,61 @@ int evaluate(int board[][8]) {
         }
     }
 
-    return eval;
+    return (color == TURN_WHITE) ? eval : eval * (-1);
 }
 
-Move Bot::makeMove(Board board, int color) {
+int search(Board board, int depth, int alpha, int beta, bool max, int color) {
+    int outcome = board.endTurn();
+    if(outcome != NORMAL_STATE) {
+        //TODO: Handle non-normal outcomes
+    }
+
     vector<Move> moves = board.getAllMoves();
 
-    //Keep track of the best move
-    //Pair: eval of best move found, best move found
-    pair<int, Move> bestMove(-1, Move(0, 0, 0, 0));
-
-    //Iterate through all possible moves to find the best one
     for(Move move : moves) {
-        Board tempBoard = board.makeBoardForMove(move);
-        tempBoard.endTurn();
-        int eval = evaluate(tempBoard.getBoard());
-        if(color == TURN_BLACK) eval *= -1;
+        int eval;
+        if(depth == 0) {
+            //If depth is 0, evaluate the current board state and return the eval
+            return evaluate(board.makeBoardForMove(move).getBoard(), color);
+        } else {
+            eval = search(board.makeBoardForMove(move), depth - 1, alpha, beta, !max, color);
 
-        if(bestMove.first == -1 || eval > bestMove.first) {
-            bestMove = make_pair(eval, move);
+            //Update alpha and beta if better moves are found
+            if(max && eval > alpha) alpha = eval;
+            if(!max && eval < beta) beta = eval;
+
+            //Alpha-beta pruning
+            if(beta <= alpha) break;
         }
     }
 
-    return bestMove.second;
+    if(max) return alpha;
+    else return beta;
+}
+
+Move Bot::makeMove(Board board, int color) {
+    auto startTime = chrono::high_resolution_clock::now();
+    positions = 0;
+
+    vector<Move> moves = board.getAllMoves();
+
+    //Keep track of the best move and eval
+    Move bestMove = moves[0];
+    int bestEval = search(board.makeBoardForMove(moves[0]), DEFAULT_DEPTH, -1000, 1000, false, color);
+
+    //Iterate through all possible moves to find the best one
+    for(int i = 1; i < moves.size(); i++) {
+        Move move = moves[i];
+        int eval = search(board.makeBoardForMove(move), DEFAULT_DEPTH, -1000, 1000, false, color);
+
+        if(eval > bestEval) {
+            bestEval = eval;
+            bestMove = move;
+        }
+    }
+
+    auto elapsedTime = chrono::high_resolution_clock::now() - startTime;
+    cout << "Evaluated " << positions << " positions in " << elapsedTime/chrono::milliseconds(1) << "ms, best position found: " << bestEval << endl;
+
+    return bestMove;
 }

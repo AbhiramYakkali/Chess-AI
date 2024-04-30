@@ -10,6 +10,7 @@
 #include "main.h"
 
 const int TURN_WHITE = 1, TURN_BLACK = 2;
+const int NORMAL_STATE = 0, WHITE_MATE = 1, BLACK_MATE = 2, STALEMATE = 3, IN_CHECK = 4;
 
 class Board {
 public:

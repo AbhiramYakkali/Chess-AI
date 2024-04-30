@@ -2,7 +2,7 @@
 #define CHESS_AI_BOT_H
 
 #include "main.h"
-#include "board.h"
+#include "Board.h"
 
 
 class Bot {

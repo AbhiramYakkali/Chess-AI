@@ -348,23 +348,23 @@ Board Board::makeBoardForMove(Move move) {
 //Returns current board state
 //0: normal, 1: white victory, 2: black victory, 3: stalemate, 4: current player is in check
 int Board::endTurn() {
-    int state = 0;
+    int state = NORMAL_STATE;
 
     moves.clear();
     allMoves.clear();
     turn = (turn == 1) ? 2 : 1;
 
     inCheck = isKingInCheck();
-    if(inCheck) state = 4;
+    if(inCheck) state = IN_CHECK;
 
     findAllMoves();
 
     if(allMoves.empty()) {
         //No moves can be made, current outcome is stalemate or checkmate
         //Current player is in check, therefore player is checkmated (lost)
-        if(inCheck) state = (turn == 1) ? 2 : 1;
+        if(inCheck) state = (turn == 1) ? BLACK_MATE : WHITE_MATE;
         //Current player is not in check, therefore result is stalemate (draw)
-        else state = 3;
+        else state = STALEMATE;
     }
 
     return state;

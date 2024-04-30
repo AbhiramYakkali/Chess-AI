@@ -84,10 +84,10 @@ void main::mouseClick(int row, int col) {
 void main::endTurn() {
     turn = (turn == 1) ? 2 : 1;
 
+    int state = board->endTurn();
+
     mainWindow->setBoard(board->getBoard());
     mainWindow->setSelectedSquare(-1, -1);
-
-    int state = board->endTurn();
     mainWindow->setGameState(state);
 
     //If state is not 0 (normal) or 4 (check) then the game has ended

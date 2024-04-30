@@ -155,6 +155,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
 
 void MainWindow::setSelectedSquare(int row, int col) {
     selectedSquare = make_pair(row, col);
+
+    repaint();
 }
 void MainWindow::setGameState(int state) {
     gameState = state;
