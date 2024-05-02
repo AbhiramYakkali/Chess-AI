@@ -6,58 +6,82 @@
 #include "Board.h"
 #include "Bot.h"
 
+using namespace std;
+
 MainWindow* mainWindow;
 Board* board;
 
 int startingBoard[8][8];
+//FEN string corresponding to the starting board
+string startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/";
 
 bool playing = false;
 //1: white, 2: black
 int turn = 1;
 //Set this to the color the AI should play as
 //-1 to play without AI
-int aiColor = 2;
+int aiColor = -1;
 
-void initializeBoard() {
-    startingBoard[0][0] = BLACK | ROOK;
-    startingBoard[0][1] = BLACK | KNIGHT;
-    startingBoard[0][2] = BLACK | BISHOP;
-    startingBoard[0][3] = BLACK | QUEEN;
-    startingBoard[0][4] = BLACK | KING;
-    startingBoard[0][5] = BLACK | BISHOP;
-    startingBoard[0][6] = BLACK | KNIGHT;
-    startingBoard[0][7] = BLACK | ROOK;
-    startingBoard[1][0] = BLACK | PAWN;
-    startingBoard[1][1] = BLACK | PAWN;
-    startingBoard[1][2] = BLACK | PAWN;
-    startingBoard[1][3] = BLACK | PAWN;
-    startingBoard[1][4] = BLACK | PAWN;
-    startingBoard[1][5] = BLACK | PAWN;
-    startingBoard[1][6] = BLACK | PAWN;
-    startingBoard[1][7] = BLACK | PAWN;
+void generateBoardFromFEN(string FEN) {
+    int c = 0, row = 0, col = 0;
+    string uppercase = FEN;
 
-    startingBoard[7][0] = WHITE | ROOK;
-    startingBoard[7][1] = WHITE | KNIGHT;
-    startingBoard[7][2] = WHITE | BISHOP;
-    startingBoard[7][3] = WHITE | QUEEN;
-    startingBoard[7][4] = WHITE | KING;
-    startingBoard[7][5] = WHITE | BISHOP;
-    startingBoard[7][6] = WHITE | KNIGHT;
-    startingBoard[7][7] = WHITE | ROOK;
-    startingBoard[6][0] = WHITE | PAWN;
-    startingBoard[6][1] = WHITE | PAWN;
-    startingBoard[6][2] = WHITE | PAWN;
-    startingBoard[6][3] = WHITE | PAWN;
-    startingBoard[6][4] = WHITE | PAWN;
-    startingBoard[6][5] = WHITE | PAWN;
-    startingBoard[6][6] = WHITE | PAWN;
-    startingBoard[6][7] = WHITE | PAWN;
+    transform(FEN.begin(), FEN.end(), uppercase.begin(), ::toupper);
+
+    while(row < 8) {
+        char character = uppercase[c];
+
+        if(character == '/') {
+            row++;
+            c++;
+            col = 0;
+            continue;
+        }
+
+        if(isdigit(character)) {
+            c++;
+            col += character - '0';
+            continue;
+        }
+
+        //The current character indicates the existence of a piece
+        int piece = 0;
+
+        switch(character) {
+            case 'R':
+                piece = ROOK;
+                break;
+            case 'N':
+                piece = KNIGHT;
+                break;
+            case 'B':
+                piece = BISHOP;
+                break;
+            case 'K':
+                piece = KING;
+                break;
+            case 'Q':
+                piece = QUEEN;
+                break;
+            case 'P':
+                piece = PAWN;
+                break;
+        }
+        //Lowercase characters represent black pieces, uppercase represent white
+        if(isupper(FEN[c])) piece |= WHITE;
+        else piece |= BLACK;
+
+        startingBoard[row][col] = piece;
+
+        col++;
+        c++;
+    }
 }
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
-    initializeBoard();
+    generateBoardFromFEN(startingFEN);
 
     mainWindow = new MainWindow();
     mainWindow->setBoard(startingBoard);
