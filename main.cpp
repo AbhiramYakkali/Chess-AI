@@ -81,6 +81,8 @@ void generateBoardFromFEN(string FEN) {
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
+    //Change this to be equal to startingFEN for a normal game
+    string FEN = "rnbqk1nr/pppp1ppp/8/2b1p3/4P3/5N2/PPPP1PPP/RNBQKB1R/";
     generateBoardFromFEN(startingFEN);
 
     mainWindow = new MainWindow();

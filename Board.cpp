@@ -9,7 +9,7 @@ using namespace std;
 
 Board::Board(const int b[8][8], int turn) {
     this->turn = turn;
-    enPassantCol = -2;
+    enPassantCol = -10;
     inCheck = false;
 
     for(int i = 0; i < 8; i++) {
@@ -76,6 +76,7 @@ void Board::findMovesForSquare(int row, int col) {
             break;
         case KING:
             calculateKingMoves(row, col);
+            break;
     }
 }
 
@@ -194,6 +195,7 @@ void Board::checkMove(Move move) {
     }
 
     if(!isKingInCheck(tempBoard)) allMoves.push_back(move);
+    //else cout << "check blocking move: " << move.startRow << move.startCol << " " << move.endRow << move.endCol << endl;
 
     if(kingPos != -1) kingPositions[turn - 1] = kingPos;
 }
@@ -222,7 +224,6 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
         if(row < 0 || row > 7 || col < 0 || col > 7) continue;
 
         if(isEnemyPiece(boardToCheck[row][col]) && (boardToCheck[row][col] & PIECE_TYPE) == KNIGHT) {
-            //cout << "in check: " << row << " " << col << endl;
             return true;
         }
     }
@@ -234,7 +235,9 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
         int col = kingCol + direction.second;
 
         //Check for enemy king (used to prevent king from moving next to the enemy king)
-        if((boardToCheck[row][col] & PIECE_TYPE) == KING) return true;
+        if(row >= 0 && row < 8 && col >= 0 && col < 8 && (boardToCheck[row][col] & PIECE_TYPE) == KING) {
+            return true;
+        }
 
         while(row >= 0 && row < 8 && col >= 0 && col < 8) {
             int type = boardToCheck[row][col] & PIECE_TYPE;
@@ -243,13 +246,11 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
                 if(isEnemyPiece(boardToCheck[row][col])) {
                     //Check for straight-line sliding pieces
                     if(i < 4 && (type == ROOK || type == QUEEN)) {
-                        //cout << "in check: " << row << " " << col << endl;
                         return true;
                     }
 
                     //Check for diagonal sliding pieces
                     if(i >= 4 && (type == BISHOP || type == QUEEN)) {
-                        //cout << "in check: " << row << " " << col << endl;
                         return true;
                     }
                 }
@@ -266,8 +267,12 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
     int direction = (turn == TURN_WHITE) ? -1 : 1;
     int newRow = kingRow + direction;
     if(newRow >= 0 && newRow < 8) {
-        if(kingCol - 1 >= 0 && isEnemyPiece(boardToCheck[newRow][kingCol - 1]) && (boardToCheck[newRow][kingCol - 1] & PIECE_TYPE) == PAWN) return true;
-        if(kingCol + 1 < 8 && isEnemyPiece(boardToCheck[newRow][kingCol + 1]) && (boardToCheck[newRow][kingCol + 1] & PIECE_TYPE) == PAWN) return true;
+        if(kingCol - 1 >= 0 && isEnemyPiece(boardToCheck[newRow][kingCol - 1]) && (boardToCheck[newRow][kingCol - 1] & PIECE_TYPE) == PAWN) {
+            return true;
+        }
+        if(kingCol + 1 < 8 && isEnemyPiece(boardToCheck[newRow][kingCol + 1]) && (boardToCheck[newRow][kingCol + 1] & PIECE_TYPE) == PAWN) {
+            return true;
+        }
     }
 
     return false;
@@ -290,7 +295,7 @@ bool Board::click(int row, int col) {
 }
 
 void Board::makeMove(Move move) {
-    enPassantCol = -2;
+    enPassantCol = -10;
 
     int start = move.startRow * 10 + move.startCol;
     int end = move.endRow * 10 + move.endCol;
