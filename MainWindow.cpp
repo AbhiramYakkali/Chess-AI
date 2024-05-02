@@ -7,6 +7,7 @@ using namespace std;
 #include "MainWindow.h"
 #include "main.h"
 #include <QPixmap>
+#include <utility>
 
 const int HEIGHT = 1080, WIDTH = 1920;
 const int vertOffset = 8;
@@ -146,6 +147,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event) {
         main::mouseClick(row, col);
     } else {
         setSelectedSquare(-1, -1);
+        qDebug() << FEN;
     }
 
     repaint();
@@ -160,4 +162,7 @@ void MainWindow::setSelectedSquare(int row, int col) {
 }
 void MainWindow::setGameState(int state) {
     gameState = state;
+}
+void MainWindow::setFEN(std::string fen) {
+    FEN = QString::fromStdString(fen);
 }

@@ -222,6 +222,7 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
         if(row < 0 || row > 7 || col < 0 || col > 7) continue;
 
         if(isEnemyPiece(boardToCheck[row][col]) && (boardToCheck[row][col] & PIECE_TYPE) == KNIGHT) {
+            //cout << "in check: " << row << " " << col << endl;
             return true;
         }
     }
@@ -242,11 +243,13 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
                 if(isEnemyPiece(boardToCheck[row][col])) {
                     //Check for straight-line sliding pieces
                     if(i < 4 && (type == ROOK || type == QUEEN)) {
+                        //cout << "in check: " << row << " " << col << endl;
                         return true;
                     }
 
                     //Check for diagonal sliding pieces
                     if(i >= 4 && (type == BISHOP || type == QUEEN)) {
+                        //cout << "in check: " << row << " " << col << endl;
                         return true;
                     }
                 }
@@ -381,10 +384,58 @@ void Board::isolateMovesForSquare(int row, int col) {
     }
 }
 
-std::vector<Move> Board::getAllMoves() {
+string Board::getFENString() {
+    string FEN = "";
+
+    for(int i = 0; i < 8; i++) {
+        int emptyCols = 0;
+        for(int j = 0; j < 8; j++) {
+            if(board[i][j] == NONE) {
+                emptyCols++;
+            } else {
+                //There is a piece on this square
+                if(emptyCols != 0) FEN.append(to_string(emptyCols));
+
+                emptyCols = 0;
+                int piece = board[i][j];
+                char letter;
+
+                switch((piece & PIECE_TYPE)) {
+                    case ROOK:
+                        letter = 'R';
+                        break;
+                    case KNIGHT:
+                        letter = 'N';
+                        break;
+                    case BISHOP:
+                        letter = 'B';
+                        break;
+                    case QUEEN:
+                        letter = 'Q';
+                        break;
+                    case KING:
+                        letter = 'K';
+                        break;
+                    case PAWN:
+                        letter = 'P';
+                        break;
+                }
+
+                if((piece & PIECE_COLOR) == BLACK) letter = tolower(letter);
+                FEN += letter;
+            }
+        }
+        if(emptyCols != 0) FEN.append(to_string(emptyCols));
+        FEN += '/';
+    }
+
+    return FEN;
+}
+
+vector<Move> Board::getAllMoves() {
     return allMoves;
 }
-std::vector<Move> Board::getMoves() {
+vector<Move> Board::getMoves() {
     return moves;
 }
 

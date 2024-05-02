@@ -9,6 +9,7 @@
 #include <QMainWindow>
 #include <QMouseEvent>
 #include <QPainter>
+#include <string>
 
 class MainWindow : public QMainWindow {
 public:
@@ -16,6 +17,7 @@ public:
     void setBoard(int board[][8]);
     void setSelectedSquare(int row, int col);
     void setGameState(int state);
+    void setFEN(std::string FEN);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -23,6 +25,7 @@ protected:
 
 private:
     int gameState;
+    QString FEN;
 
     void loadPixmaps();
 

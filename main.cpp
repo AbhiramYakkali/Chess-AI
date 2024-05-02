@@ -86,6 +86,7 @@ int main(int argc, char* argv[]) {
     mainWindow = new MainWindow();
     mainWindow->setBoard(startingBoard);
     mainWindow->setGameState(0);
+    mainWindow->setFEN(startingFEN);
     mainWindow->show();
 
     board = new Board(startingBoard);
@@ -112,6 +113,7 @@ void main::endTurn() {
 
     mainWindow->setBoard(board->getBoard());
     mainWindow->setSelectedSquare(-1, -1);
+    mainWindow->setFEN(board->getFENString());
     mainWindow->setGameState(state);
 
     //If state is not 0 (normal) or 4 (check) then the game has ended

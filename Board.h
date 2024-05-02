@@ -7,6 +7,7 @@
 
 
 #include <vector>
+#include <string>
 #include "main.h"
 
 const int TURN_WHITE = 1, TURN_BLACK = 2;
@@ -21,6 +22,9 @@ public:
     std::vector<Move> getMoves();
     //Returns all possible moves in the position
     std::vector<Move> getAllMoves();
+
+    //Generates a FEN string corresponding to the current board state
+    std::string getFENString();
 
     bool click(int row, int col);
     void makeMove(Move move);
