@@ -20,7 +20,7 @@ bool playing = false;
 int turn = 1;
 //Set this to the color the AI should play as
 //-1 to play without AI
-int aiColor = -1;
+int aiColor = 2;
 
 void generateBoardFromFEN(string FEN) {
     int c = 0, row = 0, col = 0;

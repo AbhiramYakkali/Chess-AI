@@ -6,12 +6,76 @@ using namespace std;
 
 #define DEFAULT_DEPTH 3
 
+//Piece-square tables
+int pawn_table[64] = {
+     0,  0,  0,  0,  0,  0,  0,  0,
+    50, 50, 50, 50, 50, 50, 50, 50,
+    10, 10, 20, 30, 30, 20, 10, 10,
+     5,  5, 10, 25, 25, 10,  5,  5,
+     0,  0,  0, 20, 20,  0,  0,  0,
+     5, -5,-10,  0,  0,-10, -5,  5,
+     5, 10, 10,-20,-20, 10, 10,  5,
+     0,  0,  0,  0,  0,  0,  0,  0
+};
+int knight_table[64] = {
+    -50,-40,-30,-30,-30,-30,-40,-50,
+    -40,-20,  0,  0,  0,  0,-20,-40,
+    -30,  0, 10, 15, 15, 10,  0,-30,
+    -30,  5, 15, 20, 20, 15,  5,-30,
+    -30,  0, 15, 20, 20, 15,  0,-30,
+    -30,  5, 10, 15, 15, 10,  5,-30,
+    -40,-20,  0,  5,  5,  0,-20,-40,
+    -50,-40,-30,-30,-30,-30,-40,-50
+};
+int bishop_table[64] = {
+    -20,-10,-10,-10,-10,-10,-10,-20,
+    -10,  0,  0,  0,  0,  0,  0,-10,
+    -10,  0,  5, 10, 10,  5,  0,-10,
+    -10,  5,  5, 10, 10,  5,  5,-10,
+    -10,  0, 10, 10, 10, 10,  0,-10,
+    -10, 10, 10, 10, 10, 10, 10,-10,
+    -10,  5,  0,  0,  0,  0,  5,-10,
+    -20,-10,-10,-10,-10,-10,-10,-20
+};
+int rook_table[64] = {
+     0,  0,  0,  0,  0,  0,  0,  0,
+     5, 10, 10, 10, 10, 10, 10,  5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+    -5,  0,  0,  0,  0,  0,  0, -5,
+     0,  0,  0,  5,  5,  0,  0,  0
+};
+int queen_table[64] = {
+    -20,-10,-10, -5, -5,-10,-10,-20,
+    -10,  0,  0,  0,  0,  0,  0,-10,
+    -10,  0,  5,  5,  5,  5,  0,-10,
+     -5,  0,  5,  5,  5,  5,  0, -5,
+      0,  0,  5,  5,  5,  5,  0, -5,
+    -10,  5,  5,  5,  5,  5,  0,-10,
+    -10,  0,  5,  0,  0,  0,  0,-10,
+    -20,-10,-10, -5, -5,-10,-10,-20
+};
+int king_table[64] = {
+    -30,-40,-40,-50,-50,-40,-40,-30,
+    -30,-40,-40,-50,-50,-40,-40,-30,
+    -30,-40,-40,-50,-50,-40,-40,-30,
+    -30,-40,-40,-50,-50,-40,-40,-30,
+    -20,-30,-30,-40,-40,-30,-30,-20,
+    -10,-20,-20,-20,-20,-20,-20,-10,
+     20, 20,  0,  0,  0,  0, 20, 20,
+     20, 30, 10,  0,  0, 10, 30, 20
+};
+
+int* piece_tables[6] = {king_table, pawn_table, knight_table, bishop_table, rook_table, queen_table};
+
 int positions = 0;
 
 //Evaluates a given board state and returns an integer
 //Positive numbers: white advantage; negative numbers: black advantage
 //Always returns a positive number (greater numbers are better for the AI)
-int evaluate(int board[][8], int color) {
+int evaluate(int board[][8], const int color) {
     positions++;
     int eval = 0;
 
@@ -21,36 +85,36 @@ int evaluate(int board[][8], int color) {
         for(int j = 0; j < 8; j++) {
             if(board[i][j] != NONE) {
                 //How much the current eval should be changed by due to this piece
-                int evalMod;
-                //White pieces contribute positively, black pieces contribute negatively
-                if((board[i][j] & PIECE_COLOR) == WHITE) {
-                    evalMod = 1;
-                } else {
-                    evalMod = -1;
-                }
+                int evalMod = 100;
+                const int pieceType = board[i][j] & PIECE_TYPE;
 
-                switch(board[i][j] & PIECE_TYPE) {
+                switch(pieceType) {
                     case BISHOP:
                     case KNIGHT:
-                        evalMod *= 3;
+                        evalMod = 300;
                         break;
                     case ROOK:
-                        evalMod *= 5;
+                        evalMod = 500;
                         break;
                     case QUEEN:
-                        evalMod *= 9;
+                        evalMod = 900;
                         break;
                     default:
-                        cout << "Invalid piece type found: " << (board[i][j] & PIECE_TYPE) << endl;
                         break;
                 }
 
-                eval += evalMod;
+                //Consider piece position into evaluation using piece tables
+                //Table should be flipped if current color is black
+                const int row = color == BLACK ? 8 - i : i;
+                evalMod += piece_tables[pieceType - 1][row * 8 + j];
+
+                //White pieces contribute positively, black pieces contribute negatively
+                eval += (board[i][j] & PIECE_COLOR) == WHITE ? evalMod : -evalMod;
             }
         }
     }
 
-    return (color == TURN_WHITE) ? eval : eval * -1;
+    return color == TURN_WHITE ? eval : eval * -1;
 }
 
 int search(Board board, const int depth, int alpha, int beta, const bool max, const int color) {
@@ -100,7 +164,8 @@ Move Bot::makeMove(Board board, const int color) {
     }
 
     const auto elapsedTime = chrono::high_resolution_clock::now() - startTime;
-    cout << "Evaluated " << positions << " positions in " << elapsedTime/chrono::milliseconds(1) << "ms, best position found: " << bestEval << endl;
+    cout << "Evaluated " << positions << " positions in " << elapsedTime / chrono::milliseconds(1) <<
+            "ms, best position found: " << static_cast<float>(bestEval) / 100.0f << endl;
 
     return bestMove;
 }
