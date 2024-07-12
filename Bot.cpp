@@ -29,7 +29,7 @@ int evaluate(int board[][8], int color) {
                     evalMod = -1;
                 }
 
-                switch((board[i][j] & PIECE_TYPE)) {
+                switch(board[i][j] & PIECE_TYPE) {
                     case BISHOP:
                     case KNIGHT:
                         evalMod *= 3;
@@ -40,6 +40,9 @@ int evaluate(int board[][8], int color) {
                     case QUEEN:
                         evalMod *= 9;
                         break;
+                    default:
+                        cout << "Invalid piece type found: " << (board[i][j] & PIECE_TYPE) << endl;
+                        break;
                 }
 
                 eval += evalMod;
@@ -47,43 +50,39 @@ int evaluate(int board[][8], int color) {
         }
     }
 
-    return (color == TURN_WHITE) ? eval : eval * (-1);
+    return (color == TURN_WHITE) ? eval : eval * -1;
 }
 
-int search(Board board, int depth, int alpha, int beta, bool max, int color) {
-    int outcome = board.endTurn();
-    if(outcome != NORMAL_STATE) {
+int search(Board board, const int depth, int alpha, int beta, const bool max, const int color) {
+    if(const int outcome = board.endTurn(); outcome != NORMAL_STATE) {
         //TODO: Handle non-normal outcomes
     }
 
-    vector<Move> moves = board.getAllMoves();
-
-    for(Move move : moves) {
-        int eval;
+    for(auto moves = board.getAllMoves(); Move move : moves) {
         if(depth == 0) {
             //If depth is 0, evaluate the current board state and return the eval
             return evaluate(board.makeBoardForMove(move).getBoard(), color);
-        } else {
-            eval = search(board.makeBoardForMove(move), depth - 1, alpha, beta, !max, color);
-
-            //Update alpha and beta if better moves are found
-            if(max && eval > alpha) alpha = eval;
-            if(!max && eval < beta) beta = eval;
-
-            //Alpha-beta pruning
-            if(beta <= alpha) break;
         }
+
+        const int eval = search(board.makeBoardForMove(move), depth - 1, alpha, beta, !max, color);
+
+        //Update alpha and beta if better moves are found
+        if(max && eval > alpha) alpha = eval;
+        if(!max && eval < beta) beta = eval;
+
+        //Alpha-beta pruning
+        if(beta <= alpha) break;
     }
 
     if(max) return alpha;
-    else return beta;
+    return beta;
 }
 
-Move Bot::makeMove(Board board, int color) {
-    auto startTime = chrono::high_resolution_clock::now();
+Move Bot::makeMove(Board board, const int color) {
+    const auto startTime = chrono::high_resolution_clock::now();
     positions = 0;
 
-    vector<Move> moves = board.getAllMoves();
+    const vector<Move> moves = board.getAllMoves();
 
     //Keep track of the best move and eval
     Move bestMove = moves[0];
@@ -100,7 +99,7 @@ Move Bot::makeMove(Board board, int color) {
         }
     }
 
-    auto elapsedTime = chrono::high_resolution_clock::now() - startTime;
+    const auto elapsedTime = chrono::high_resolution_clock::now() - startTime;
     cout << "Evaluated " << positions << " positions in " << elapsedTime/chrono::milliseconds(1) << "ms, best position found: " << bestEval << endl;
 
     return bestMove;

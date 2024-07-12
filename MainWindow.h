@@ -11,13 +11,13 @@
 #include <QPainter>
 #include <string>
 
-class MainWindow : public QMainWindow {
+class MainWindow final : public QMainWindow {
 public:
-    MainWindow(QWidget *parent = nullptr);
-    void setBoard(int board[][8]);
+    explicit MainWindow(QWidget *parent = nullptr);
+    static void setBoard(int board[][8]);
     void setSelectedSquare(int row, int col);
     void setGameState(int state);
-    void setFEN(std::string FEN);
+    void setFEN(const std::string& fen);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -31,6 +31,5 @@ private:
 
     QVector<QPixmap> pieceImages;
 };
-
 
 #endif //CHESS_AI_MAINWINDOW_H

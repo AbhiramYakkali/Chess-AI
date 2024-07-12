@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Board::Board(const int b[8][8], int turn) {
+Board::Board(const int b[8][8], const int turn) {
     this->turn = turn;
     enPassantCol = -10;
     inCheck = false;
@@ -52,16 +52,14 @@ Board::Board(const int b[8][8]) : Board(b, TURN_WHITE) {}
 void Board::findAllMoves() {
     for(int i = 0; i < 8; i++) {
         for(int j = 0; j < 8; j++) {
-            int piece = board[i][j];
-
-            if((piece & PIECE_TYPE) != NONE && (piece & PIECE_COLOR) / 8 == turn) {
+            if(const int piece = board[i][j]; (piece & PIECE_TYPE) != NONE && (piece & PIECE_COLOR) / 8 == turn) {
                 findMovesForSquare(i, j);
             }
         }
     }
 }
 
-void Board::findMovesForSquare(int row, int col) {
+void Board::findMovesForSquare(const int row, const int col) {
     switch(board[row][col] & PIECE_TYPE) {
         case PAWN:
             calculatePawnMoves(row, col);
@@ -77,12 +75,15 @@ void Board::findMovesForSquare(int row, int col) {
         case KING:
             calculateKingMoves(row, col);
             break;
+        default:
+            cout << "Error finding piece type: " << board[row][col] << endl;
+            break;
     }
 }
 
-void Board::calculatePawnMoves(int row, int col) {
+void Board::calculatePawnMoves(const int row, const int col) {
     //Determine direction of travel based on color; black: positive (downwards), white: negative (upwards)
-    int direction = (turn == 1) ? -1 : 1;
+    const int direction = (turn == 1) ? -1 : 1;
 
     //Check forward moves
     int nextRow = row + direction;
@@ -116,10 +117,10 @@ void Board::calculatePawnMoves(int row, int col) {
         }
     }
 }
-void Board::calculateKnightMoves(int row, int col) {
-    for(pair<int, int> direction : knightDirections) {
-        int nextRow = row + direction.first;
-        int nextCol = col + direction.second;
+void Board::calculateKnightMoves(const int row, const int col) {
+    for(auto [rowDir, colDir] : knightDirections) {
+        const int nextRow = row + rowDir;
+        const int nextCol = col + colDir;
 
         if(nextRow < 0 || nextRow > 7 || nextCol < 0 || nextCol > 7) continue;
 
@@ -129,11 +130,11 @@ void Board::calculateKnightMoves(int row, int col) {
     }
 }
 void Board::calculateKingMoves(int row, int col) {
-    int pieceColor = board[row][col] & PIECE_COLOR;
+    const int pieceColor = board[row][col] & PIECE_COLOR;
 
-    for(auto direction : slidingDirections) {
-        int nextRow = row + direction.first;
-        int nextCol = col + direction.second;
+    for(auto [rowDir, colDir] : slidingDirections) {
+        const int nextRow = row + rowDir;
+        const int nextCol = col + colDir;
 
         if(nextRow < 0 || nextRow > 7 || nextCol < 0 || nextCol > 7) continue;
 
@@ -150,24 +151,24 @@ void Board::calculateKingMoves(int row, int col) {
         if(board[row][5] + board[row][6] == 0) allMoves.emplace_back(row, col, row, 6, KINGS_CASTLE);
     }
 }
-void Board::calculateSlidingMoves(int row, int col) {
-    int piece = board[row][col];
-    int pieceColor = piece & PIECE_COLOR;
-    int startIndex = ((piece & PIECE_TYPE) == BISHOP) ? 4 : 0;
-    int endIndex = ((piece & PIECE_TYPE) == ROOK) ? 4 : 8;
+void Board::calculateSlidingMoves(const int row, const int col) {
+    const int piece = board[row][col];
+    const int pieceColor = piece & PIECE_COLOR;
+    const int startIndex = ((piece & PIECE_TYPE) == BISHOP) ? 4 : 0;
+    const int endIndex = ((piece & PIECE_TYPE) == ROOK) ? 4 : 8;
 
     for(int i = startIndex; i < endIndex; i++) {
-        pair<int, int> direction = slidingDirections[i];
+        auto [rowDir, colDir] = slidingDirections[i];
         int nextRow = row;
         int nextCol = col;
 
         while(true) {
-            nextRow += direction.first;
-            nextCol += direction.second;
+            nextRow += rowDir;
+            nextCol += colDir;
 
             if(nextRow < 0 || nextRow > 7 || nextCol < 0 || nextCol > 7) break;
 
-            int nextSquareColor = board[nextRow][nextCol] & PIECE_COLOR;
+            const int nextSquareColor = board[nextRow][nextCol] & PIECE_COLOR;
 
             //Square being checked is occupied by a friendly piece
             if(nextSquareColor == pieceColor) break;
@@ -180,7 +181,7 @@ void Board::calculateSlidingMoves(int row, int col) {
     }
 }
 
-void Board::checkMove(Move move) {
+void Board::checkMove(const Move& move) {
     int tempBoard[8][8];
     int kingPos = -1;
     copy(&board[0][0], &board[7][8], &tempBoard[0][0]);
@@ -200,26 +201,26 @@ void Board::checkMove(Move move) {
     if(kingPos != -1) kingPositions[turn - 1] = kingPos;
 }
 
-bool Board::isEnemyPiece2(int piece, int color) {
+bool Board::isEnemyPiece2(const int piece, const int color) {
     return piece != 0 && (piece & PIECE_COLOR) != color;
 }
-bool Board::isEnemyPiece(int row, int col) {
+bool Board::isEnemyPiece(const int row, const int col) const {
     return isEnemyPiece2(board[row][col], turn * 8);
 }
-bool Board::isEnemyPiece(int piece) {
+bool Board::isEnemyPiece(const int piece) const {
     return isEnemyPiece2(piece, turn * 8);
 }
 
 //Checks if the king is currently in check
 bool Board::isKingInCheck(int (*boardToCheck)[8]) {
-    int kingPosition = kingPositions[turn - 1];
-    int kingRow = kingPosition / 10;
-    int kingCol = kingPosition % 10;
+    const int kingPosition = kingPositions[turn - 1];
+    const int kingRow = kingPosition / 10;
+    const int kingCol = kingPosition % 10;
 
     //Check for enemy knights
-    for(auto direction : knightDirections) {
-        int row = kingRow + direction.first;
-        int col = kingCol + direction.second;
+    for(auto [rowDir, colDir] : knightDirections) {
+        const int row = kingRow + rowDir;
+        const int col = kingCol + colDir;
 
         if(row < 0 || row > 7 || col < 0 || col > 7) continue;
 
@@ -230,9 +231,9 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
 
     //Check for enemy sliding pieces
     for(int i = 0; i < 8; i++) {
-        pair<int, int> direction = slidingDirections[i];
-        int row = kingRow + direction.first;
-        int col = kingCol + direction.second;
+        auto [rowDir, colDir] = slidingDirections[i];
+        int row = kingRow + rowDir;
+        int col = kingCol + colDir;
 
         //Check for enemy king (used to prevent king from moving next to the enemy king)
         if(row >= 0 && row < 8 && col >= 0 && col < 8 && (boardToCheck[row][col] & PIECE_TYPE) == KING) {
@@ -240,7 +241,7 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
         }
 
         while(row >= 0 && row < 8 && col >= 0 && col < 8) {
-            int type = boardToCheck[row][col] & PIECE_TYPE;
+            const int type = boardToCheck[row][col] & PIECE_TYPE;
 
             if(boardToCheck[row][col] != NONE) {
                 if(isEnemyPiece(boardToCheck[row][col])) {
@@ -258,14 +259,14 @@ bool Board::isKingInCheck(int (*boardToCheck)[8]) {
                 break;
             }
 
-            row += direction.first;
-            col += direction.second;
+            row += rowDir;
+            col += colDir;
         }
     }
 
     //Check for enemy pawns
-    int direction = (turn == TURN_WHITE) ? -1 : 1;
-    int newRow = kingRow + direction;
+    const int direction = (turn == TURN_WHITE) ? -1 : 1;
+    const int newRow = kingRow + direction;
     if(newRow >= 0 && newRow < 8) {
         if(kingCol - 1 >= 0 && isEnemyPiece(boardToCheck[newRow][kingCol - 1]) && (boardToCheck[newRow][kingCol - 1] & PIECE_TYPE) == PAWN) {
             return true;
@@ -281,8 +282,8 @@ bool Board::isKingInCheck() {
     return isKingInCheck(board);
 }
 
-bool Board::click(int row, int col) {
-    for(auto & move : moves) {
+bool Board::click(const int row, const int col) {
+    for(const auto & move : moves) {
         if(move.endRow == row && move.endCol == col) {
             makeMove(move);
 
@@ -294,11 +295,11 @@ bool Board::click(int row, int col) {
     return false;
 }
 
-void Board::makeMove(Move move) {
+void Board::makeMove(const Move& move) {
     enPassantCol = -10;
 
-    int start = move.startRow * 10 + move.startCol;
-    int end = move.endRow * 10 + move.endCol;
+    const int start = move.startRow * 10 + move.startCol;
+    const int end = move.endRow * 10 + move.endCol;
 
     if(move.specialMove == NORMAL_MOVE) {
         board[move.endRow][move.endCol] = board[move.startRow][move.startCol];
@@ -328,13 +329,13 @@ void Board::makeMove(Move move) {
             if(start == 7) canCastle[1].second = false;
         }
     } else if(move.specialMove == KINGS_CASTLE) {
-        int row = move.startRow;
+        const int row = move.startRow;
         board[row][6] = board[row][4];
         board[row][5] = board[row][7];
         board[row][4] = 0;
         board[row][7] = 0;
     } else if(move.specialMove == QUEENS_CASTLE) {
-        int row = move.startRow;
+        const int row = move.startRow;
         board[row][2] = board[row][4];
         board[row][3] = board[row][0];
         board[row][4] = 0;
@@ -347,8 +348,8 @@ void Board::makeMove(Move move) {
     }
 }
 
-Board Board::makeBoardForMove(Move move) {
-    Board output = Board(board, turn);
+Board Board::makeBoardForMove(const Move& move) const {
+    auto output = Board(board, turn);
     output.makeMove(move);
     return output;
 }
@@ -378,7 +379,7 @@ int Board::endTurn() {
     return state;
 }
 
-void Board::isolateMovesForSquare(int row, int col) {
+void Board::isolateMovesForSquare(const int row, const int col) {
     moves.clear();
 
     int piece = board[row][col];
@@ -389,23 +390,23 @@ void Board::isolateMovesForSquare(int row, int col) {
     }
 }
 
-string Board::getFENString() {
-    string FEN = "";
+string Board::getFENString() const {
+    string FEN;
 
-    for(int i = 0; i < 8; i++) {
+    for(const auto & row : board) {
         int emptyCols = 0;
-        for(int j = 0; j < 8; j++) {
-            if(board[i][j] == NONE) {
+        for(const auto & square : row) {
+            if(square == NONE) {
                 emptyCols++;
             } else {
                 //There is a piece on this square
                 if(emptyCols != 0) FEN.append(to_string(emptyCols));
 
                 emptyCols = 0;
-                int piece = board[i][j];
+                const int piece = square;
                 char letter;
 
-                switch((piece & PIECE_TYPE)) {
+                switch(piece & PIECE_TYPE) {
                     case ROOK:
                         letter = 'R';
                         break;
@@ -423,6 +424,9 @@ string Board::getFENString() {
                         break;
                     case PAWN:
                         letter = 'P';
+                        break;
+                    default:
+                        letter = ' ';
                         break;
                 }
 

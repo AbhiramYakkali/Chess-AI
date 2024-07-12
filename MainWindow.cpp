@@ -9,24 +9,26 @@ using namespace std;
 #include <QPixmap>
 #include <utility>
 
-const int HEIGHT = 1080, WIDTH = 1920;
-const int vertOffset = 8;
-const int sqLength = (HEIGHT - vertOffset * 2) / 8;
-const int pieceLength = sqLength * 7 / 8;
-const int pieceCenteringOffset = (sqLength - pieceLength) / 2;
-const int horizStart = (WIDTH - (sqLength * 8)) / 2;
+constexpr int HEIGHT = 1152, WIDTH = 2048;
+constexpr int vertOffset = 8;
+constexpr int sqLength = (HEIGHT - vertOffset * 2) / 8;
+constexpr int pieceLength = sqLength * 7 / 8;
+constexpr int pieceCenteringOffset = (sqLength - pieceLength) / 2;
+constexpr int horizStart = (WIDTH - sqLength * 8) / 2;
 
 int gameBoard[8][8];
 
-pair<int, int> selectedSquare(-1, -1);
+pair selectedSquare(-1, -1);
 
 //Colors
-const QColor white("#EEEED2");
-const QColor black("#769656");
-const QColor red("#ff5252");
-const QColor bg("#312E2B");
+constexpr QColor white(238, 238, 210);
+constexpr QColor black(118, 150, 86);
+constexpr QColor red(255, 82, 82);
+constexpr QColor bg(49, 46, 43);
 
 MainWindow::MainWindow(QWidget *parent) {
+    gameState = 0;
+
     setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
     setWindowState(Qt::WindowMaximized);
 
@@ -67,10 +69,9 @@ void MainWindow::paintEvent(QPaintEvent *event) {
 
     //Fill in possible moves (if any)
     painter.setPen(red);
-    std::vector<Move> moves = main::getMoves();
-    for(auto & move : moves) {
-        int row = move.endRow;
-        int col = move.endCol;
+    for(auto moves = main::getMoves(); const auto & move : moves) {
+        const int row = move.endRow;
+        const int col = move.endCol;
 
         if(gameBoard[row][col] != 0) {
             painter.setBrush(Qt::NoBrush);
@@ -136,11 +137,11 @@ void MainWindow::loadPixmaps() {
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event) {
-    int x = event->position().x();
-    int y = event->position().y();
+    const int x = static_cast<int>(event->position().x());
+    const int y = static_cast<int>(event->position().y());
 
-    int col = (x - horizStart) / sqLength;
-    int row = (y - vertOffset) / sqLength;
+    const int col = (x - horizStart) / sqLength;
+    const int row = (y - vertOffset) / sqLength;
 
     //Check if mouse press was within game bounds
     if(col > -1 && col < 8 && row > -1 && row < 8) {
@@ -160,9 +161,9 @@ void MainWindow::setSelectedSquare(int row, int col) {
 
     repaint();
 }
-void MainWindow::setGameState(int state) {
+void MainWindow::setGameState(const int state) {
     gameState = state;
 }
-void MainWindow::setFEN(std::string fen) {
+void MainWindow::setFEN(const std::string& fen) {
     FEN = QString::fromStdString(fen);
 }

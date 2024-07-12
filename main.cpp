@@ -26,10 +26,10 @@ void generateBoardFromFEN(string FEN) {
     int c = 0, row = 0, col = 0;
     string uppercase = FEN;
 
-    transform(FEN.begin(), FEN.end(), uppercase.begin(), ::toupper);
+    ranges::transform(FEN.begin(), FEN.end(), uppercase.begin(), ::toupper);
 
     while(row < 8) {
-        char character = uppercase[c];
+        const char character = uppercase[c];
 
         if(character == '/') {
             row++;
@@ -45,7 +45,7 @@ void generateBoardFromFEN(string FEN) {
         }
 
         //The current character indicates the existence of a piece
-        int piece = 0;
+        int piece;
 
         switch(character) {
             case 'R':
@@ -66,6 +66,9 @@ void generateBoardFromFEN(string FEN) {
             case 'P':
                 piece = PAWN;
                 break;
+            default:
+                cout << "Invalid piece type found: " << character << endl;
+                exit(0);
         }
         //Lowercase characters represent black pieces, uppercase represent white
         if(isupper(FEN[c])) piece |= WHITE;
@@ -86,7 +89,7 @@ int main(int argc, char* argv[]) {
     generateBoardFromFEN(startingFEN);
 
     mainWindow = new MainWindow();
-    mainWindow->setBoard(startingBoard);
+    MainWindow::setBoard(startingBoard);
     mainWindow->setGameState(0);
     mainWindow->setFEN(startingFEN);
     mainWindow->show();
@@ -98,7 +101,7 @@ int main(int argc, char* argv[]) {
     return QApplication::exec();
 }
 
-void main::mouseClick(int row, int col) {
+void main::mouseClick(const int row, const int col) {
     if(playing) {
         if(board->click(row, col)) {
             endTurn();
@@ -111,9 +114,9 @@ void main::mouseClick(int row, int col) {
 void main::endTurn() {
     turn = (turn == 1) ? 2 : 1;
 
-    int state = board->endTurn();
+    const int state = board->endTurn();
 
-    mainWindow->setBoard(board->getBoard());
+    MainWindow::setBoard(board->getBoard());
     mainWindow->setSelectedSquare(-1, -1);
     mainWindow->setFEN(board->getFENString());
     mainWindow->setGameState(state);
