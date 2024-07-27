@@ -105,7 +105,7 @@ int evaluate(int board[][8], const int color) {
 
                 //Consider piece position into evaluation using piece tables
                 //Table should be flipped if current color is black
-                const int row = color == BLACK ? 8 - i : i;
+                const int row = color == BLACK ? 7 - i : i;
                 evalMod += piece_tables[pieceType - 1][row * 8 + j];
 
                 //White pieces contribute positively, black pieces contribute negatively
@@ -118,8 +118,15 @@ int evaluate(int board[][8], const int color) {
 }
 
 int search(Board board, const int depth, int alpha, int beta, const bool max, const int color) {
-    if(const int outcome = board.endTurn(); outcome != NORMAL_STATE) {
-        //TODO: Handle non-normal outcomes
+    if(const int outcome = board.endTurn(); outcome != NORMAL_STATE && outcome != IN_CHECK) {
+        if(outcome == color) {
+            //Current player win
+            return 1000;
+        } else if(outcome == STALEMATE) {
+            return 0;
+        } else {
+            return -1000;
+        }
     }
 
     for(auto moves = board.getAllMoves(); Move move : moves) {
