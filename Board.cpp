@@ -88,7 +88,12 @@ void Board::calculatePawnMoves(const int row, const int col) {
     //Check forward moves
     int nextRow = row + direction;
     if(board[nextRow][col] == NONE) {
-        checkMove(Move(row, col, nextRow, col));
+        //Check for promotion
+        if(nextRow == 0 || nextRow == 7) {
+            checkMove(Move(row, col, nextRow, col, PROMOTION_QUEEN));
+        } else {
+            checkMove(Move(row, col, nextRow, col));
+        }
 
         //Check for double Move
         nextRow += direction;
@@ -346,6 +351,10 @@ void Board::makeMove(const Move& move) {
         board[move.startRow][move.startCol] = 0;
         //Capture pawn with en passant
         board[move.startRow][move.endCol] = 0;
+    } else {
+        //Move is a promotion
+        board[move.endRow][move.endCol] = board[move.startRow][move.startCol] & PIECE_COLOR | move.specialMove - 1;
+        board[move.startRow][move.startCol] = 0;
     }
 }
 
