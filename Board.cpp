@@ -301,17 +301,18 @@ void Board::makeMove(const Move& move) {
     const int start = move.startRow * 10 + move.startCol;
     const int end = move.endRow * 10 + move.endCol;
 
+    //Update king position if king moves
+    //Castling is no longer possible if king moves
+    if((board[move.startRow][move.startCol] & PIECE_TYPE) == KING) {
+        kingPositions[turn - 1] = end;
+        canCastle[turn - 1] = make_pair(false, false);
+    }
+
     if(move.specialMove == NORMAL_MOVE) {
         board[move.endRow][move.endCol] = board[move.startRow][move.startCol];
         board[move.startRow][move.startCol] = 0;
 
-        //Update king position if king moved
-        if((board[move.endRow][move.endCol] & PIECE_TYPE) == KING) {
-            kingPositions[turn - 1] = end;
-
-            //Castling is no longer possible if king moved
-            canCastle[turn - 1] = make_pair(false, false);
-        } else if((board[move.endRow][move.endCol] & PIECE_TYPE) == PAWN && abs(move.endRow - move.startRow) == 2) {
+        if((board[move.endRow][move.endCol] & PIECE_TYPE) == PAWN && abs(move.endRow - move.startRow) == 2) {
             //Pawn moved forward two squares, keep track to check for en passant
             enPassantCol = move.endCol;
         }
