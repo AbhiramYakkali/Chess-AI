@@ -13,7 +13,7 @@
 
 class MainWindow final : public QMainWindow {
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr, int height = 1080, int width = 1920);
     static void setBoard(int board[][8]);
     void setSelectedSquare(int row, int col);
     void setGameState(int state);
@@ -26,6 +26,7 @@ protected:
 private:
     int gameState;
     QString FEN;
+    int HEIGHT, WIDTH, vertOffset, sqLength, pieceLength, pieceCenteringOffset, horizStart;
 
     void loadPixmaps();
 

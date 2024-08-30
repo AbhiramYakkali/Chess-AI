@@ -88,7 +88,13 @@ int main(int argc, char* argv[]) {
     string FEN = "rnbqk1nr/pppp1ppp/8/2b1p3/4P3/5N2/PPPP1PPP/RNBQKB1R/";
     generateBoardFromFEN(startingFEN);
 
-    mainWindow = new MainWindow();
+    //Use CL arguments to specify height and width of game window
+    if(argc > 1) {
+        mainWindow = new MainWindow(nullptr, stoi(argv[1]), stoi(argv[2]));
+    } else {
+        mainWindow = new MainWindow();
+    }
+
     MainWindow::setBoard(startingBoard);
     mainWindow->setGameState(0);
     mainWindow->setFEN(startingFEN);

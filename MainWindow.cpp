@@ -9,12 +9,7 @@ using namespace std;
 #include <QPixmap>
 #include <utility>
 
-constexpr int HEIGHT = 1152, WIDTH = 2048;
-constexpr int vertOffset = 8;
-constexpr int sqLength = (HEIGHT - vertOffset * 2) / 8;
-constexpr int pieceLength = sqLength * 7 / 8;
-constexpr int pieceCenteringOffset = (sqLength - pieceLength) / 2;
-constexpr int horizStart = (WIDTH - sqLength * 8) / 2;
+
 
 int gameBoard[8][8];
 
@@ -26,8 +21,16 @@ constexpr QColor black(118, 150, 86);
 constexpr QColor red(255, 82, 82);
 constexpr QColor bg(49, 46, 43);
 
-MainWindow::MainWindow(QWidget *parent) {
+MainWindow::MainWindow(QWidget *parent, int height, int width) {
     gameState = 0;
+
+    HEIGHT = height;
+    WIDTH = width;
+    vertOffset = 8;
+    sqLength = (HEIGHT - vertOffset * 2) / 8;
+    pieceLength = sqLength * 7 / 8;
+    pieceCenteringOffset = (sqLength - pieceLength) / 2;
+    horizStart = (WIDTH - sqLength * 8) / 2;
 
     setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
     setWindowState(Qt::WindowMaximized);
@@ -75,11 +78,13 @@ void MainWindow::paintEvent(QPaintEvent *event) {
 
         if(gameBoard[row][col] != 0) {
             painter.setBrush(Qt::NoBrush);
-            painter.drawEllipse(QPoint(horizStart + sqLength * col + sqLength / 2, vertOffset + sqLength * row + sqLength / 2), sqLength / 2, sqLength / 2);
+            painter.drawEllipse(QPoint(horizStart + sqLength * col + sqLength / 2,
+                                       vertOffset + sqLength * row + sqLength / 2), sqLength / 2, sqLength / 2);
         }
         else {
             painter.setBrush(red);
-            painter.drawEllipse(QPoint(horizStart + sqLength * col + sqLength / 2, vertOffset + sqLength * row + sqLength / 2), sqLength / 5, sqLength / 5);
+            painter.drawEllipse(QPoint(horizStart + sqLength * col + sqLength / 2,
+                                       vertOffset + sqLength * row + sqLength / 2), sqLength / 5, sqLength / 5);
         }
     }
 
