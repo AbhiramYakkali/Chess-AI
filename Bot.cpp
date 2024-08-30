@@ -121,12 +121,15 @@ int search(Board board, const int depth, int alpha, int beta, const bool max, co
     if(const int outcome = board.endTurn(); outcome != NORMAL_STATE && outcome != IN_CHECK) {
         if(outcome == color) {
             //Current player win
-            return 1000;
-        } else if(outcome == STALEMATE) {
-            return 0;
-        } else {
-            return -1000;
+            return 100000;
         }
+
+        if(outcome == STALEMATE) {
+            return 0;
+        }
+
+        //Other player win
+        return -100000;
     }
 
     for(auto moves = board.getAllMoves(); Move move : moves) {
@@ -157,12 +160,12 @@ Move Bot::makeMove(Board board, const int color) {
 
     //Keep track of the best move and eval
     Move bestMove = moves[0];
-    int bestEval = search(board.makeBoardForMove(moves[0]), DEFAULT_DEPTH, -1000, 1000, false, color);
+    int bestEval = search(board.makeBoardForMove(moves[0]), DEFAULT_DEPTH, -10000, 10000, false, color);
 
     //Iterate through all possible moves to find the best one
     for(int i = 1; i < moves.size(); i++) {
         Move move = moves[i];
-        int eval = search(board.makeBoardForMove(move), DEFAULT_DEPTH, -1000, 1000, false, color);
+        int eval = search(board.makeBoardForMove(move), DEFAULT_DEPTH, -10000, 10000, false, color);
 
         if(eval > bestEval) {
             bestEval = eval;

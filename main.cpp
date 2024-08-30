@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 
     //Change this to be equal to startingFEN for a normal game
     string FEN = "rnbqk1nr/pppp1ppp/8/2b1p3/4P3/5N2/PPPP1PPP/RNBQKB1R/";
-    generateBoardFromFEN(startingFEN);
+    generateBoardFromFEN("4k3/P7/8/8/8/8/8/4K3/");
 
     //Use CL arguments to specify height and width of game window
     if(argc > 1) {

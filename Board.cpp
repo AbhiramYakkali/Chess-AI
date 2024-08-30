@@ -88,7 +88,12 @@ void Board::calculatePawnMoves(const int row, const int col) {
     //Check forward moves
     int nextRow = row + direction;
     if(board[nextRow][col] == NONE) {
-        checkMove(Move(row, col, nextRow, col));
+        //Check for promotion
+        if(nextRow == 0 || nextRow == 7) {
+            checkMove(Move(row, col, nextRow, col, PROMOTION_QUEEN));
+        } else {
+            checkMove(Move(row, col, nextRow, col));
+        }
 
         //Check for double Move
         nextRow += direction;
@@ -301,17 +306,18 @@ void Board::makeMove(const Move& move) {
     const int start = move.startRow * 10 + move.startCol;
     const int end = move.endRow * 10 + move.endCol;
 
+    //Update king position if king moves
+    //Castling is no longer possible if king moves
+    if((board[move.startRow][move.startCol] & PIECE_TYPE) == KING) {
+        kingPositions[turn - 1] = end;
+        canCastle[turn - 1] = make_pair(false, false);
+    }
+
     if(move.specialMove == NORMAL_MOVE) {
         board[move.endRow][move.endCol] = board[move.startRow][move.startCol];
         board[move.startRow][move.startCol] = 0;
 
-        //Update king position if king moved
-        if((board[move.endRow][move.endCol] & PIECE_TYPE) == KING) {
-            kingPositions[turn - 1] = end;
-
-            //Castling is no longer possible if king moved
-            canCastle[turn - 1] = make_pair(false, false);
-        } else if((board[move.endRow][move.endCol] & PIECE_TYPE) == PAWN && abs(move.endRow - move.startRow) == 2) {
+        if((board[move.endRow][move.endCol] & PIECE_TYPE) == PAWN && abs(move.endRow - move.startRow) == 2) {
             //Pawn moved forward two squares, keep track to check for en passant
             enPassantCol = move.endCol;
         }
@@ -345,6 +351,10 @@ void Board::makeMove(const Move& move) {
         board[move.startRow][move.startCol] = 0;
         //Capture pawn with en passant
         board[move.startRow][move.endCol] = 0;
+    } else {
+        //Move is a promotion
+        board[move.endRow][move.endCol] = board[move.startRow][move.startCol] & PIECE_COLOR | move.specialMove - 1;
+        board[move.startRow][move.startCol] = 0;
     }
 }
 
